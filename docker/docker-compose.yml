@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  hearmeman-extended:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hearmeman-extended:local
+    container_name: hearmeman-extended
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - ENABLE_VIBEVOICE=true
+      - ENABLE_CONTROLNET=true
+      - ENABLE_ILLUSTRIOUS=false
+      - ENABLE_ZIMAGE=false
+      - VIBEVOICE_MODEL=Large
+      - STORAGE_MODE=persistent
+      - COMFYUI_PORT=8188
+    ports:
+      - "8188:8188"
+      - "8888:8888"
+      - "2222:22"
+    volumes:
+      - ./models:/workspace/ComfyUI/models
+      - ./output:/workspace/ComfyUI/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  models:
+  output:

@@ -30,6 +30,32 @@ Custom RunPod templates for AI model deployment with on-demand model downloads.
 | `hearmeman-extended-template.md` | Main Dockerfile + scripts |
 | `illustrious-template-integration.md` | Realism Illustrious |
 
+## Docker Files
+
+Ready-to-build Docker template in `docker/`:
+
+| File | Description |
+|------|-------------|
+| `Dockerfile` | Multi-layer build with ComfyUI + custom nodes |
+| `start.sh` | Startup script with storage detection |
+| `download_models.sh` | On-demand model downloader with resume support |
+| `docker-compose.yml` | Local development with NVIDIA runtime |
+| `.github/workflows/docker-build.yml` | GHCR auto-publish workflow |
+
+### Quick Build (Local)
+
+```bash
+cd docker
+docker compose build
+docker compose up -d
+```
+
+### Push to GHCR
+
+1. Create GitHub repo
+2. Enable GitHub Actions
+3. Push to trigger build: `git push origin main`
+
 ## Key Environment Variables
 
 | Variable | Default | Size |
