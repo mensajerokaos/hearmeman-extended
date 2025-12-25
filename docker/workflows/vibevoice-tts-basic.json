@@ -1,0 +1,93 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadAudio",
+      "pos": [50, 100],
+      "size": [315, 124],
+      "inputs": [],
+      "outputs": [
+        {"name": "AUDIO", "type": "AUDIO", "links": [1]}
+      ],
+      "properties": {},
+      "widgets_values": ["reference_voice.mp3"],
+      "title": "Reference Voice (Speaker 1)"
+    },
+    {
+      "id": 2,
+      "type": "VibeVoiceTTS",
+      "pos": [400, 100],
+      "size": [400, 350],
+      "inputs": [
+        {"name": "speaker_1_voice", "type": "AUDIO", "link": 1},
+        {"name": "speaker_2_voice", "type": "AUDIO", "link": null},
+        {"name": "speaker_3_voice", "type": "AUDIO", "link": null},
+        {"name": "speaker_4_voice", "type": "AUDIO", "link": null}
+      ],
+      "outputs": [
+        {"name": "AUDIO", "type": "AUDIO", "links": [2]}
+      ],
+      "properties": {},
+      "widgets_values": [
+        "VibeVoice-1.5B",
+        false,
+        "eager",
+        1.3,
+        10,
+        0,
+        "[1] Hello, this is a test of the VibeVoice text-to-speech system. The voice should match the reference audio provided.\n\n[1] This is another sentence using the same cloned voice."
+      ],
+      "title": "VibeVoice TTS"
+    },
+    {
+      "id": 3,
+      "type": "SaveAudio",
+      "pos": [850, 100],
+      "size": [315, 124],
+      "inputs": [
+        {"name": "audio", "type": "AUDIO", "link": 2}
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["vibevoice-output", "wav"],
+      "title": "Save Audio"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "AUDIO"],
+    [2, 2, 0, 3, 0, "AUDIO"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4,
+  "_metadata": {
+    "name": "VibeVoice TTS Basic Voice Cloning",
+    "description": "Basic text-to-speech workflow with voice cloning using Microsoft VibeVoice",
+    "models_required": [
+      {"name": "VibeVoice-1.5B", "path": "vibevoice/", "url": "https://huggingface.co/microsoft/VibeVoice-1.5B"}
+    ],
+    "custom_nodes_required": [
+      {"name": "ComfyUI-VibeVoice (wildminder)", "url": "https://github.com/wildminder/ComfyUI-VibeVoice"},
+      {"name": "VibeVoice-ComfyUI (Enemyx-net)", "url": "https://github.com/Enemyx-net/VibeVoice-ComfyUI"}
+    ],
+    "settings": {
+      "model": "VibeVoice-1.5B or VibeVoice-Large",
+      "cfg_scale": 1.3,
+      "inference_steps": 10,
+      "quantize_4bit": false
+    },
+    "script_format": {
+      "speaker_tags": ["[1]", "[2]", "[3]", "[4]", "Speaker 1:", "Speaker 2:"],
+      "example": "[1] First speaker says this.\n[2] Second speaker responds."
+    },
+    "notes": "Connect reference audio to speaker_X_voice inputs for voice cloning. Leave inputs empty for auto-generated voices. Supports up to 4 speakers. Use VibeVoice-Large (18GB) for higher quality."
+  }
+}

@@ -73,6 +73,11 @@ RUN git clone --depth 1 https://github.com/anveshane/Comfyui_turbodiffusion.git 
     cd Comfyui_turbodiffusion && \
     pip install --no-cache-dir -r requirements.txt || true
 
+# ComfyUI-WAN (WAN 2.2 video generation nodes)
+RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WAN.git && \
+    cd ComfyUI-WAN && \
+    pip install --no-cache-dir -r requirements.txt || true
+
 # CivitAI integration
 RUN pip install --no-cache-dir civitai-downloader
 
@@ -93,6 +98,9 @@ RUN pip install --no-cache-dir \
 COPY start.sh /start.sh
 COPY download_models.sh /download_models.sh
 RUN chmod +x /start.sh /download_models.sh
+
+# Copy example workflows
+COPY workflows/ /workspace/ComfyUI/user/default/workflows/
 
 # SSH configuration
 RUN mkdir -p /var/run/sshd && \

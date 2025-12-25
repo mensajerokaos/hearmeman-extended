@@ -1,0 +1,161 @@
+{
+  "last_node_id": 11,
+  "last_link_id": 12,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [50, 100],
+      "size": [315, 58],
+      "inputs": [],
+      "outputs": [
+        {"name": "MODEL", "type": "MODEL", "links": [1]}
+      ],
+      "properties": {},
+      "widgets_values": ["z_image_turbo_bf16.safetensors", "default"]
+    },
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [50, 200],
+      "size": [315, 58],
+      "inputs": [],
+      "outputs": [
+        {"name": "CLIP", "type": "CLIP", "links": [2, 3]}
+      ],
+      "properties": {},
+      "widgets_values": ["qwen_3_4b.safetensors", "default"]
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [50, 300],
+      "size": [315, 58],
+      "inputs": [],
+      "outputs": [
+        {"name": "VAE", "type": "VAE", "links": [4]}
+      ],
+      "properties": {},
+      "widgets_values": ["ae.safetensors"]
+    },
+    {
+      "id": 4,
+      "type": "CLIPTextEncode",
+      "pos": [400, 100],
+      "size": [400, 200],
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 2}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "links": [5]}
+      ],
+      "properties": {},
+      "widgets_values": ["a professional photograph of a beautiful mountain landscape at sunset, dramatic lighting, 8k, highly detailed"]
+    },
+    {
+      "id": 5,
+      "type": "CLIPTextEncode",
+      "pos": [400, 320],
+      "size": [400, 100],
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 3}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "links": [6]}
+      ],
+      "properties": {},
+      "widgets_values": ["blurry, low quality, distorted, ugly, deformed"]
+    },
+    {
+      "id": 6,
+      "type": "EmptySD3LatentImage",
+      "pos": [400, 450],
+      "size": [315, 106],
+      "inputs": [],
+      "outputs": [
+        {"name": "LATENT", "type": "LATENT", "links": [7]}
+      ],
+      "properties": {},
+      "widgets_values": [1024, 1024, 1]
+    },
+    {
+      "id": 7,
+      "type": "KSampler",
+      "pos": [850, 100],
+      "size": [315, 262],
+      "inputs": [
+        {"name": "model", "type": "MODEL", "link": 1},
+        {"name": "positive", "type": "CONDITIONING", "link": 5},
+        {"name": "negative", "type": "CONDITIONING", "link": 6},
+        {"name": "latent_image", "type": "LATENT", "link": 7}
+      ],
+      "outputs": [
+        {"name": "LATENT", "type": "LATENT", "links": [8]}
+      ],
+      "properties": {},
+      "widgets_values": [0, "randomize", 9, 1.0, "simple", "res_multistep", 1.0]
+    },
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [1200, 100],
+      "size": [210, 46],
+      "inputs": [
+        {"name": "samples", "type": "LATENT", "link": 8},
+        {"name": "vae", "type": "VAE", "link": 4}
+      ],
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "links": [9]}
+      ],
+      "properties": {}
+    },
+    {
+      "id": 9,
+      "type": "SaveImage",
+      "pos": [1200, 200],
+      "size": [315, 270],
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 9}
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["z-image"]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 7, 0, "MODEL"],
+    [2, 2, 0, 4, 0, "CLIP"],
+    [3, 2, 0, 5, 0, "CLIP"],
+    [4, 3, 0, 8, 1, "VAE"],
+    [5, 4, 0, 7, 1, "CONDITIONING"],
+    [6, 5, 0, 7, 2, "CONDITIONING"],
+    [7, 6, 0, 7, 3, "LATENT"],
+    [8, 7, 0, 8, 0, "LATENT"],
+    [9, 8, 0, 9, 0, "IMAGE"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4,
+  "_metadata": {
+    "name": "Z-Image Turbo Basic txt2img",
+    "description": "Basic text-to-image workflow for Z-Image Turbo model",
+    "models_required": [
+      {"name": "z_image_turbo_bf16.safetensors", "path": "diffusion_models/", "url": "https://huggingface.co/Comfy-Org/z_image_turbo_models/blob/main/z_image_turbo_bf16.safetensors"},
+      {"name": "qwen_3_4b.safetensors", "path": "text_encoders/", "url": "https://huggingface.co/Comfy-Org/z_image_turbo_models/blob/main/qwen_3_4b.safetensors"},
+      {"name": "ae.safetensors", "path": "vae/", "url": "https://huggingface.co/Comfy-Org/z_image_turbo_models/blob/main/ae.safetensors"}
+    ],
+    "settings": {
+      "steps": 9,
+      "sampler": "simple",
+      "scheduler": "res_multistep",
+      "cfg": 1.0,
+      "resolution": "1024x1024"
+    }
+  }
+}

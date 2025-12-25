@@ -102,6 +102,61 @@ if [ "${ENABLE_ZIMAGE:-false}" = "true" ]; then
 fi
 
 # ============================================
+# WAN 2.2 Video Generation Models
+# ============================================
+if [ "${WAN_720P:-false}" = "true" ]; then
+    echo "[WAN] Downloading WAN 2.2 720p models..."
+    # Text encoders (shared)
+    hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+        "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+        "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+
+    # CLIP Vision for I2V
+    hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+        "split_files/clip_vision/clip_vision_h.safetensors" \
+        "$MODELS_DIR/clip_vision/clip_vision_h.safetensors"
+
+    # VAE
+    hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+        "split_files/vae/wan_2.1_vae.safetensors" \
+        "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+
+    # 720p diffusion model (T2V)
+    hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+        "split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
+        "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors"
+
+    # 720p I2V model (if I2V enabled)
+    if [ "${ENABLE_I2V:-false}" = "true" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" \
+            "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors"
+    fi
+fi
+
+if [ "${WAN_480P:-false}" = "true" ]; then
+    echo "[WAN] Downloading WAN 2.2 480p models (~12GB)..."
+    # Text encoders (shared - skip if already downloaded)
+    if [ ! -f "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+    fi
+
+    # VAE (shared)
+    if [ ! -f "$MODELS_DIR/vae/wan_2.1_vae.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/vae/wan_2.1_vae.safetensors" \
+            "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+    fi
+
+    # 480p diffusion model (T2V) - smaller, fits 16GB VRAM
+    hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+        "split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors" \
+        "$MODELS_DIR/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors"
+fi
+
+# ============================================
 # SteadyDancer
 # ============================================
 if [ "${ENABLE_STEADYDANCER:-false}" = "true" ]; then
