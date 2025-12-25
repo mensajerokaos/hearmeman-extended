@@ -1,3 +1,48 @@
+# RunPod Custom Templates
+
+Custom RunPod templates for AI model deployment with on-demand model downloads.
+
+## Storage Requirements (Local Docker Lab)
+
+| Component | Size | Notes |
+|-----------|------|-------|
+| **Docker Image** | ~12GB | Base with custom nodes |
+| **WAN 2.2 720p** | ~25GB | Default video gen |
+| **WAN 2.2 480p** | ~12GB | Optional |
+| **VibeVoice-Large** | ~18GB | TTS voice cloning |
+| **XTTS v2** | ~1.8GB | Multilingual TTS |
+| **Z-Image Turbo** | ~21GB | Fast image gen |
+| **SteadyDancer** | ~33GB | Dance video |
+| **SCAIL** | ~28GB | Facial mocap |
+| **ControlNet (5)** | ~3.6GB | Preprocessors |
+| **VACE 14B** | ~28GB | Video editing |
+| **Fun InP 14B** | ~28GB | Frame interpolation |
+| **Realism Illustrious** | ~6.5GB | Photorealistic images |
+| **Total (ALL)** | **~230GB** | |
+| **Typical Config** | **~80-120GB** | |
+
+**Minimum Local Setup**: 250GB SSD, 32GB RAM, 24GB VRAM
+
+## PRD Documents
+
+| Document | Description |
+|----------|-------------|
+| `hearmeman-extended-template.md` | Main Dockerfile + scripts |
+| `illustrious-template-integration.md` | Realism Illustrious |
+
+## Key Environment Variables
+
+| Variable | Default | Size |
+|----------|---------|------|
+| `ENABLE_VIBEVOICE` | true | 18GB |
+| `ENABLE_ZIMAGE` | false | 21GB |
+| `ENABLE_ILLUSTRIOUS` | false | 6.5GB |
+| `ENABLE_VACE` | false | 28GB |
+| `ENABLE_CIVITAI` | false | varies |
+| `WAN_720P` | true | 25GB |
+
+---
+
 # Project Context - Task Logging & Agent Delegation
 
 ## Task Logging System
