@@ -2,6 +2,49 @@
 
 Custom RunPod templates for AI model deployment with on-demand model downloads.
 
+---
+
+## ⚠️ CRITICAL: Production-Ready Workflow Requirements
+
+**This is a pre-deployment testing environment.** All workflows and configurations MUST be production-ready before commit.
+
+### Deployment Reality
+- **Pods regenerate** on every start/stop (ephemeral storage)
+- **No manual intervention** allowed in production - workflows must work immediately
+- **Models download at startup** via `download_models.sh` - paths must match workflow expectations
+- **Local Docker testing** validates what will run on RunPod
+
+### Before Committing Workflows
+1. **Test locally** in Docker (same environment as RunPod)
+2. **Verify all node values** are valid for ComfyUI version in the image
+3. **Check model paths** match what `download_models.sh` creates
+4. **Validate samplers/schedulers** against ComfyUI's current allowed values
+5. **No "default" placeholders** - all fields must have explicit valid values
+
+### Common Validation Points
+| Node | Field | Check |
+|------|-------|-------|
+| CLIPLoader | `type` | Must be explicit: `qwen_image`, `stable_diffusion`, `flux`, etc. NOT `default` |
+| KSampler | `sampler_name` | Valid: `euler`, `dpmpp_2m`, `dpmpp_sde`, etc. |
+| KSampler | `scheduler` | Valid: `simple`, `karras`, `sgm_uniform`, etc. NOT `res_multistep` |
+| UNETLoader | `unet_name` | Must match downloaded model filename exactly |
+| VAELoader | `vae_name` | Must match downloaded VAE filename exactly |
+
+### Workflow Testing Checklist
+```bash
+# 1. Start local Docker
+cd docker && docker compose up -d
+
+# 2. Open ComfyUI
+open http://localhost:8188
+
+# 3. Load workflow from docker/workflows/
+# 4. Queue prompt - verify NO validation errors
+# 5. Only commit after successful generation
+```
+
+---
+
 ## Storage Requirements (Local Docker Lab)
 
 | Component | Size | Notes |
