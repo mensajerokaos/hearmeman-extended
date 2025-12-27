@@ -1,0 +1,73 @@
+Oscar Voice Cloning Test - Sat Dec 27 01:46:37 CST 2025
+========================================
+XTTS | en | regular | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-regular-seed42.wav
+XTTS | en | regular | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-regular-seed123.wav
+XTTS | en | regular | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-regular-seed777.wav
+XTTS | en | deep | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-deep-seed42.wav
+XTTS | en | deep | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-deep-seed123.wav
+XTTS | en | deep | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-deep-seed777.wav
+XTTS | en | troll | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-troll-seed42.wav
+XTTS | en | troll | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-troll-seed123.wav
+XTTS | en | troll | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-troll-seed777.wav
+XTTS | en | friendly | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-friendly-seed42.wav
+XTTS | en | friendly | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-friendly-seed123.wav
+XTTS | en | friendly | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-friendly-seed777.wav
+XTTS | en | casanova | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-casanova-seed42.wav
+XTTS | en | casanova | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-casanova-seed123.wav
+XTTS | en | casanova | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-en-casanova-seed777.wav
+XTTS | es | deep | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-deep-seed42.wav
+XTTS | es | deep | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-deep-seed123.wav
+XTTS | es | deep | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-deep-seed777.wav
+XTTS | es | troll | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-troll-seed42.wav
+XTTS | es | troll | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-troll-seed123.wav
+XTTS | es | troll | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-troll-seed777.wav
+XTTS | es | friendly | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-friendly-seed42.wav
+XTTS | es | friendly | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-friendly-seed123.wav
+XTTS | es | friendly | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-friendly-seed777.wav
+XTTS | es | casanova | seed=42 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-casanova-seed42.wav
+XTTS | es | casanova | seed=123 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-casanova-seed123.wav
+XTTS | es | casanova | seed=777 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/xtts-v2/xtts-es-casanova-seed777.wav
+CB-ML | en | regular | take=1 seed=4921 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-regular-take1-seed4921.wav
+CB-ML | en | regular | take=2 seed=3152 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-regular-take2-seed3152.wav
+CB-ML | en | regular | take=3 seed=3878 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-regular-take3-seed3878.wav
+CB-ML | en | deep | take=1 seed=3487 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-deep-take1-seed3487.wav
+CB-ML | en | deep | take=2 seed=439 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-deep-take2-seed439.wav
+CB-ML | en | deep | take=3 seed=7137 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-deep-take3-seed7137.wav
+CB-ML | en | troll | take=1 seed=622 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-troll-take1-seed622.wav
+CB-ML | en | troll | take=2 seed=4768 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-troll-take2-seed4768.wav
+CB-ML | en | troll | take=3 seed=9855 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-troll-take3-seed9855.wav
+CB-ML | en | friendly | take=1 seed=5807 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-friendly-take1-seed5807.wav
+CB-ML | en | friendly | take=2 seed=1807 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-friendly-take2-seed1807.wav
+CB-ML | en | friendly | take=3 seed=8080 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-friendly-take3-seed8080.wav
+CB-ML | en | casanova | take=1 seed=9518 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-casanova-take1-seed9518.wav
+CB-ML | en | casanova | take=2 seed=3606 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-casanova-take2-seed3606.wav
+CB-ML | en | casanova | take=3 seed=193 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-en-casanova-take3-seed193.wav
+CB-ML | es | deep | take=1 seed=6435 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-deep-take1-seed6435.wav
+CB-ML | es | deep | take=2 seed=2927 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-deep-take2-seed2927.wav
+CB-ML | es | deep | take=3 seed=793 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-deep-take3-seed793.wav
+CB-ML | es | troll | take=1 seed=1962 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-troll-take1-seed1962.wav
+CB-ML | es | troll | take=2 seed=3007 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-troll-take2-seed3007.wav
+CB-ML | es | troll | take=3 seed=7040 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-troll-take3-seed7040.wav
+CB-ML | es | friendly | take=1 seed=6889 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-friendly-take1-seed6889.wav
+CB-ML | es | friendly | take=2 seed=4513 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-friendly-take2-seed4513.wav
+CB-ML | es | friendly | take=3 seed=160 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-friendly-take3-seed160.wav
+CB-ML | es | casanova | take=1 seed=9161 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-casanova-take1-seed9161.wav
+CB-ML | es | casanova | take=2 seed=7195 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-casanova-take2-seed7195.wav
+CB-ML | es | casanova | take=3 seed=4823 | /home/oz/projects/2025/oz/12/runpod/docker/tts-comparison/oscar-cloning-results/chatterbox-multilingual/cb-ml-es-casanova-take3-seed4823.wav
+Oscar Turbo Voice Cloning Seeds
+========================================
+TURBO | en | regular | take=1 seed=1887 | turbo-en-regular-take1-seed1887.wav
+TURBO | en | regular | take=2 seed=3444 | turbo-en-regular-take2-seed3444.wav
+TURBO | en | regular | take=3 seed=6050 | turbo-en-regular-take3-seed6050.wav
+TURBO | en | deep | take=1 seed=9721 | turbo-en-deep-take1-seed9721.wav
+TURBO | en | deep | take=2 seed=1911 | turbo-en-deep-take2-seed1911.wav
+TURBO | en | deep | take=3 seed=7443 | turbo-en-deep-take3-seed7443.wav
+TURBO | en | troll | take=1 seed=7508 | turbo-en-troll-take1-seed7508.wav
+TURBO | en | troll | take=2 seed=7021 | turbo-en-troll-take2-seed7021.wav
+TURBO | en | troll | take=3 seed=3509 | turbo-en-troll-take3-seed3509.wav
+TURBO | en | friendly | take=1 seed=7522 | turbo-en-friendly-take1-seed7522.wav
+TURBO | en | friendly | take=2 seed=4096 | turbo-en-friendly-take2-seed4096.wav
+TURBO | en | friendly | take=3 seed=635 | turbo-en-friendly-take3-seed635.wav
+TURBO | en | casanova | take=1 seed=6519 | turbo-en-casanova-take1-seed6519.wav
+TURBO | en | casanova | take=2 seed=5323 | turbo-en-casanova-take2-seed5323.wav
+TURBO | en | casanova | take=3 seed=7093 | turbo-en-casanova-take3-seed7093.wav

@@ -1,0 +1,18 @@
+Oscar Chatterbox Original Voice Cloning Seeds
+(CFG & Exaggeration enabled)
+========================================
+ORIG | en | regular | exag=0.3 seed=2374 | orig-en-regular-subtle-seed2374.wav
+ORIG | en | regular | exag=0.5 seed=7437 | orig-en-regular-medium-seed7437.wav
+ORIG | en | regular | exag=0.7 seed=7197 | orig-en-regular-expressive-seed7197.wav
+ORIG | en | deep | exag=0.3 seed=8946 | orig-en-deep-subtle-seed8946.wav
+ORIG | en | deep | exag=0.5 seed=4690 | orig-en-deep-medium-seed4690.wav
+ORIG | en | deep | exag=0.7 seed=6481 | orig-en-deep-expressive-seed6481.wav
+ORIG | en | troll | exag=0.3 seed=3512 | orig-en-troll-subtle-seed3512.wav
+ORIG | en | troll | exag=0.5 seed=4935 | orig-en-troll-medium-seed4935.wav
+ORIG | en | troll | exag=0.7 seed=5647 | orig-en-troll-expressive-seed5647.wav
+ORIG | en | friendly | exag=0.3 seed=7333 | orig-en-friendly-subtle-seed7333.wav
+ORIG | en | friendly | exag=0.5 seed=7724 | orig-en-friendly-medium-seed7724.wav
+ORIG | en | friendly | exag=0.7 seed=9236 | orig-en-friendly-expressive-seed9236.wav
+ORIG | en | casanova | exag=0.3 seed=9831 | orig-en-casanova-subtle-seed9831.wav
+ORIG | en | casanova | exag=0.5 seed=4619 | orig-en-casanova-medium-seed4619.wav
+ORIG | en | casanova | exag=0.7 seed=3587 | orig-en-casanova-expressive-seed3587.wav

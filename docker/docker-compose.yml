@@ -87,6 +87,7 @@ services:
     volumes:
       - ./models:/workspace/ComfyUI/models
       - ./output:/workspace/ComfyUI/output
+      - /home/oz/comfyui/models/vibevoice:/workspace/ComfyUI/models/vibevoice:ro
     deploy:
       resources:
         reservations:

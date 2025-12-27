@@ -1,0 +1,17 @@
+Oscar XTTS v2 Voice Cloning Seeds
+========================================
+XTTS | en | regular | seed=42 | xtts-en-regular-seed42.wav
+XTTS | en | regular | seed=123 | xtts-en-regular-seed123.wav
+XTTS | en | regular | seed=777 | xtts-en-regular-seed777.wav
+XTTS | en | deep | seed=42 | xtts-en-deep-seed42.wav
+XTTS | en | deep | seed=123 | xtts-en-deep-seed123.wav
+XTTS | en | deep | seed=777 | xtts-en-deep-seed777.wav
+XTTS | en | troll | seed=42 | xtts-en-troll-seed42.wav
+XTTS | en | troll | seed=123 | xtts-en-troll-seed123.wav
+XTTS | en | troll | seed=777 | xtts-en-troll-seed777.wav
+XTTS | en | friendly | seed=42 | xtts-en-friendly-seed42.wav
+XTTS | en | friendly | seed=123 | xtts-en-friendly-seed123.wav
+XTTS | en | friendly | seed=777 | xtts-en-friendly-seed777.wav
+XTTS | en | casanova | seed=42 | xtts-en-casanova-seed42.wav
+XTTS | en | casanova | seed=123 | xtts-en-casanova-seed123.wav
+XTTS | en | casanova | seed=777 | xtts-en-casanova-seed777.wav
