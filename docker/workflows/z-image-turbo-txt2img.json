@@ -24,7 +24,7 @@
         {"name": "CLIP", "type": "CLIP", "links": [2, 3]}
       ],
       "properties": {},
-      "widgets_values": ["qwen_3_4b.safetensors", "default"]
+      "widgets_values": ["qwen_3_4b.safetensors", "qwen_image"]
     },
     {
       "id": 3,
@@ -93,7 +93,7 @@
         {"name": "LATENT", "type": "LATENT", "links": [8]}
       ],
       "properties": {},
-      "widgets_values": [0, "randomize", 9, 1.0, "simple", "res_multistep", 1.0]
+      "widgets_values": [0, "randomize", 9, 1.0, "euler", "simple", 1.0]
     },
     {
       "id": 8,
@@ -152,8 +152,8 @@
     ],
     "settings": {
       "steps": 9,
-      "sampler": "simple",
-      "scheduler": "res_multistep",
+      "sampler": "euler",
+      "scheduler": "simple",
       "cfg": 1.0,
       "resolution": "1024x1024"
     }

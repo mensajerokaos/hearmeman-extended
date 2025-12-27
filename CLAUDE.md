@@ -45,6 +45,123 @@ open http://localhost:8188
 
 ---
 
+## Voice Cloning / TTS Nodes
+
+### VibeVoice-ComfyUI (Recommended)
+**Repo**: https://github.com/Enemyx-net/VibeVoice-ComfyUI (v1.8.1+)
+**Status**: ✅ Working
+**VRAM**: ~8-12GB (1.5B model), ~16GB+ (7B model)
+
+Features:
+- Multi-speaker TTS (up to 4 speakers)
+- Voice cloning from audio reference
+- LoRA support for voice customization
+- Speed control
+
+**Dependencies** (installed in Dockerfile):
+```
+bitsandbytes>=0.48.1  # Critical - older versions break Q8 model
+transformers>=4.51.3
+accelerate
+peft
+librosa
+soundfile
+```
+
+### XTTS v2 Standalone Server
+**Image**: daswer123/xtts-api-server:latest
+**Status**: ✅ Working (separate container)
+**Swagger UI**: http://localhost:8020/docs
+**VRAM**: 4-8GB
+
+ComfyUI-XTTS node is broken, but XTTS works as a standalone Docker service with full REST API:
+
+```bash
+# Start XTTS alongside ComfyUI
+docker compose --profile xtts up -d
+
+# Or start XTTS only
+docker compose --profile xtts up xtts -d
+```
+
+**Features**:
+- 17 languages (en, es, fr, de, it, pt, zh-cn, ja, ko, ru, ar, etc.)
+- Voice cloning from reference audio
+- Real-time streaming (~200ms latency)
+- REST API for automation
+- Built-in speakers: `male`, `female`, `calm_female`
+
+**API Endpoints**:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/tts_to_audio/` | POST | Returns audio bytes directly |
+| `/tts_to_file` | POST | Saves to server file path |
+| `/tts_stream` | POST | Streams audio chunks |
+| `/speakers_list` | GET | List available speakers |
+| `/languages` | GET | List supported languages |
+
+**API Example**:
+```bash
+# Generate audio file
+curl -X POST "http://localhost:8020/tts_to_audio/" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello world", "speaker_wav": "female", "language": "en"}' \
+  -o output.wav
+
+# Custom voice cloning (provide reference .wav)
+curl -X POST "http://localhost:8020/tts_to_audio/" \
+  -d '{"text": "Clone my voice", "speaker_wav": "/path/to/reference.wav", "language": "en"}' \
+  -o cloned.wav
+```
+
+**VO Automation Script**: `docker/scripts/xtts-vo-gen.py`
+```bash
+# Single line
+python xtts-vo-gen.py "Hello world" -o hello.wav
+
+# Batch from script file
+python xtts-vo-gen.py -f script.txt -d ./vo-output --speaker male
+
+# List options
+python xtts-vo-gen.py --list-speakers
+python xtts-vo-gen.py --list-languages
+```
+
+**Note**: XTTS runs in a separate container due to `transformers` version conflict:
+- `xtts-api-server` requires `transformers==4.36.2`
+- ComfyUI/VibeVoice requires `transformers>=4.51.3`
+
+Both share the GPU (~4GB for XTTS + ~12GB for ComfyUI = fits in 16GB).
+
+### Chatterbox TTS (Resemble AI)
+**Container**: chatterbox (separate container)
+**API**: http://localhost:8000/docs
+**VRAM**: ~2-4GB
+
+Zero-shot voice cloning with emotion control. OpenAI-compatible API.
+
+```bash
+# Start Chatterbox
+docker compose --profile chatterbox up -d
+
+# Generate speech
+curl -X POST http://localhost:8000/v1/audio/speech \
+  -H "Content-Type: application/json" \
+  -d '{"model": "chatterbox", "input": "Hello world", "voice": "default"}' \
+  -o speech.wav
+```
+
+**ComfyUI Node**: `ComfyUI-Chatterbox` (thefader/ComfyUI-Chatterbox)
+
+### Model Selection by VRAM
+
+| GPU VRAM | Recommended Model |
+|----------|-------------------|
+| 16GB (4080 Super) | VibeVoice 1.5B |
+| 24GB+ (A6000, L40S) | VibeVoice 7B |
+
+---
+
 ## Storage Requirements (Local Docker Lab)
 
 | Component | Size | Notes |

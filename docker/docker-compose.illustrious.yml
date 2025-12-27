@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  illustrious:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: illustrious:local
+    container_name: illustrious
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      # ONLY Illustrious - disable everything else
+      - ENABLE_VIBEVOICE=false
+      - ENABLE_CONTROLNET=false
+      - ENABLE_ZIMAGE=false
+      - ENABLE_XTTS=false
+      - ENABLE_I2V=false
+      - ENABLE_VACE=false
+      - ENABLE_FUN_INP=false
+      - ENABLE_STEADYDANCER=false
+      - ENABLE_SCAIL=false
+      - WAN_720P=false
+      - WAN_480P=false
+      # Illustrious ONLY
+      - ENABLE_ILLUSTRIOUS=true
+      - ENABLE_ILLUSTRIOUS_EMBEDDINGS=true
+      # CivitAI NSFW LoRAs
+      - ENABLE_CIVITAI=true
+      - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+      - CIVITAI_LORAS=1906687,1736657
+      # Settings
+      - STORAGE_MODE=persistent
+      - COMFYUI_PORT=8188
+    ports:
+      - "8188:8188"
+      - "8888:8888"
+      - "2222:22"
+    volumes:
+      # Mount your EXISTING models directory
+      - /home/oz/comfyui/models:/workspace/ComfyUI/models
+      - ./output:/workspace/ComfyUI/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

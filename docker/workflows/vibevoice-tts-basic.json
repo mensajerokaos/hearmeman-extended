@@ -1,57 +1,75 @@
 {
-  "last_node_id": 6,
-  "last_link_id": 5,
+  "last_node_id": 4,
+  "last_link_id": 2,
   "nodes": [
     {
       "id": 1,
       "type": "LoadAudio",
       "pos": [50, 100],
-      "size": [315, 124],
+      "size": [270, 136],
       "inputs": [],
       "outputs": [
         {"name": "AUDIO", "type": "AUDIO", "links": [1]}
       ],
       "properties": {},
-      "widgets_values": ["reference_voice.mp3"],
-      "title": "Reference Voice (Speaker 1)"
+      "widgets_values": ["reference_voice.mp3", null, null],
+      "title": "Reference Voice"
     },
     {
       "id": 2,
-      "type": "VibeVoiceTTS",
-      "pos": [400, 100],
-      "size": [400, 350],
+      "type": "VibeVoiceSingleSpeakerNode",
+      "pos": [380, 100],
+      "size": [400, 420],
       "inputs": [
-        {"name": "speaker_1_voice", "type": "AUDIO", "link": 1},
-        {"name": "speaker_2_voice", "type": "AUDIO", "link": null},
-        {"name": "speaker_3_voice", "type": "AUDIO", "link": null},
-        {"name": "speaker_4_voice", "type": "AUDIO", "link": null}
+        {"name": "voice_to_clone", "type": "AUDIO", "link": 1},
+        {"name": "lora", "type": "LORA_CONFIG", "link": null}
       ],
       "outputs": [
-        {"name": "AUDIO", "type": "AUDIO", "links": [2]}
+        {"name": "audio", "type": "AUDIO", "links": [2]}
       ],
       "properties": {},
       "widgets_values": [
+        "Hello, this is a test of the VibeVoice text-to-speech system. The voice should match the reference audio provided.",
         "VibeVoice-1.5B",
-        false,
-        "eager",
+        "auto",
+        "full precision",
+        true,
+        20,
+        42,
+        "fixed",
         1.3,
-        10,
-        0,
-        "[1] Hello, this is a test of the VibeVoice text-to-speech system. The voice should match the reference audio provided.\n\n[1] This is another sentence using the same cloned voice."
+        false,
+        0.95,
+        0.95,
+        250,
+        1.0
       ],
       "title": "VibeVoice TTS"
     },
     {
       "id": 3,
-      "type": "SaveAudio",
-      "pos": [850, 100],
-      "size": [315, 124],
+      "type": "PreviewAudio",
+      "pos": [830, 100],
+      "size": [270, 88],
       "inputs": [
         {"name": "audio", "type": "AUDIO", "link": 2}
       ],
       "outputs": [],
       "properties": {},
-      "widgets_values": ["vibevoice-output", "wav"],
+      "widgets_values": [],
+      "title": "Preview Audio"
+    },
+    {
+      "id": 4,
+      "type": "SaveAudio",
+      "pos": [830, 230],
+      "size": [270, 124],
+      "inputs": [
+        {"name": "audio", "type": "AUDIO", "link": 2}
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["vibevoice-output"],
       "title": "Save Audio"
     }
   ],
@@ -69,25 +87,20 @@
   },
   "version": 0.4,
   "_metadata": {
-    "name": "VibeVoice TTS Basic Voice Cloning",
-    "description": "Basic text-to-speech workflow with voice cloning using Microsoft VibeVoice",
+    "name": "VibeVoice Single Speaker TTS",
+    "description": "Single-speaker text-to-speech with voice cloning using VibeVoice",
+    "custom_node": "Enemyx-net/VibeVoice-ComfyUI",
     "models_required": [
-      {"name": "VibeVoice-1.5B", "path": "vibevoice/", "url": "https://huggingface.co/microsoft/VibeVoice-1.5B"}
-    ],
-    "custom_nodes_required": [
-      {"name": "ComfyUI-VibeVoice (wildminder)", "url": "https://github.com/wildminder/ComfyUI-VibeVoice"},
-      {"name": "VibeVoice-ComfyUI (Enemyx-net)", "url": "https://github.com/Enemyx-net/VibeVoice-ComfyUI"}
+      {"name": "VibeVoice-1.5B", "path": "vibevoice/VibeVoice-1.5B/", "url": "https://huggingface.co/microsoft/VibeVoice-1.5B"},
+      {"name": "Qwen2.5 Tokenizer", "path": "vibevoice/tokenizer/", "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B"}
     ],
     "settings": {
-      "model": "VibeVoice-1.5B or VibeVoice-Large",
-      "cfg_scale": 1.3,
-      "inference_steps": 10,
-      "quantize_4bit": false
+      "model": "VibeVoice-1.5B",
+      "attention_type": "auto",
+      "quantize": "full precision",
+      "diffusion_steps": 20,
+      "cfg_scale": 1.3
     },
-    "script_format": {
-      "speaker_tags": ["[1]", "[2]", "[3]", "[4]", "Speaker 1:", "Speaker 2:"],
-      "example": "[1] First speaker says this.\n[2] Second speaker responds."
-    },
-    "notes": "Connect reference audio to speaker_X_voice inputs for voice cloning. Leave inputs empty for auto-generated voices. Supports up to 4 speakers. Use VibeVoice-Large (18GB) for higher quality."
+    "notes": "Place reference audio in ComfyUI/input/. Model auto-downloads on first run. For higher quality use VibeVoice-Large (18GB)."
   }
 }

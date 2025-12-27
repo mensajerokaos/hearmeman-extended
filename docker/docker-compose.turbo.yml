@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  chatterbox:
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - USE_MULTILINGUAL_MODEL=false

@@ -20,7 +20,7 @@
       "id": 2,
       "type": "CLIPTextEncode",
       "pos": [400, 100],
-      "size": [400, 200],
+      "size": [450, 200],
       "inputs": [
         {"name": "clip", "type": "CLIP", "link": 2}
       ],
@@ -28,13 +28,13 @@
         {"name": "CONDITIONING", "type": "CONDITIONING", "links": [5]}
       ],
       "properties": {},
-      "widgets_values": ["masterpiece, best quality, highly detailed, photorealistic portrait of a woman, natural lighting, soft shadows, professional photography, 8k uhd"]
+      "widgets_values": ["embedding:Stable_Yogis_Illustrious_Positives, \n\n(masterpiece, best quality, extremely detailed:1.2), photorealistic, \n\n1girl, beautiful woman, detailed face, detailed eyes, \n\n(your subject here),\n\nnatural lighting, professional photography, 8k uhd"]
     },
     {
       "id": 3,
       "type": "CLIPTextEncode",
       "pos": [400, 320],
-      "size": [400, 100],
+      "size": [450, 120],
       "inputs": [
         {"name": "clip", "type": "CLIP", "link": 3}
       ],
@@ -42,24 +42,24 @@
         {"name": "CONDITIONING", "type": "CONDITIONING", "links": [6]}
       ],
       "properties": {},
-      "widgets_values": ["worst quality, low quality, blurry, distorted, deformed, ugly, bad anatomy, bad hands, text, watermark, signature"]
+      "widgets_values": ["embedding:Stable_Yogis_Illustrious_Negatives, \n\n(worst quality, low quality:1.4), blurry, distorted, deformed, ugly, bad anatomy, bad hands, text, watermark, signature, censored"]
     },
     {
       "id": 4,
       "type": "EmptyLatentImage",
-      "pos": [400, 450],
+      "pos": [400, 470],
       "size": [315, 106],
       "inputs": [],
       "outputs": [
         {"name": "LATENT", "type": "LATENT", "links": [7]}
       ],
       "properties": {},
-      "widgets_values": [1024, 1024, 1]
+      "widgets_values": [832, 1216, 1]
     },
     {
       "id": 5,
       "type": "KSampler",
-      "pos": [850, 100],
+      "pos": [900, 100],
       "size": [315, 262],
       "inputs": [
         {"name": "model", "type": "MODEL", "link": 1},
@@ -71,12 +71,12 @@
         {"name": "LATENT", "type": "LATENT", "links": [8]}
       ],
       "properties": {},
-      "widgets_values": [0, "randomize", 25, 7.0, "dpmpp_2m", "karras", 1.0]
+      "widgets_values": [0, "randomize", 28, 7.0, "dpmpp_2m_sde", "karras", 1.0]
     },
     {
       "id": 6,
       "type": "VAEDecode",
-      "pos": [1200, 100],
+      "pos": [1250, 100],
       "size": [210, 46],
       "inputs": [
         {"name": "samples", "type": "LATENT", "link": 8},
@@ -90,14 +90,14 @@
     {
       "id": 7,
       "type": "SaveImage",
-      "pos": [1200, 200],
+      "pos": [1250, 180],
       "size": [315, 270],
       "inputs": [
         {"name": "images", "type": "IMAGE", "link": 9}
       ],
       "outputs": [],
       "properties": {},
-      "widgets_values": ["realism-illustrious"]
+      "widgets_values": ["illustrious-emb"]
     }
   ],
   "links": [
@@ -115,24 +115,26 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1,
+      "scale": 0.9,
       "offset": [0, 0]
     }
   },
   "version": 0.4,
   "_metadata": {
-    "name": "Realism Illustrious Basic txt2img",
-    "description": "Basic text-to-image workflow for Realism Illustrious SDXL model",
+    "name": "Realism Illustrious with Embeddings",
+    "description": "Uses Stable Yogi's official embeddings for optimal quality",
     "models_required": [
-      {"name": "realismIllustrious_v20.safetensors", "path": "checkpoints/", "url": "https://civitai.com/models/1048098/realism-illustrious"}
+      {"name": "realismIllustriousByStableYogi_v50FP16.safetensors", "path": "checkpoints/"},
+      {"name": "Stable_Yogis_Illustrious_Positives.safetensors", "path": "embeddings/"},
+      {"name": "Stable_Yogis_Illustrious_Negatives.safetensors", "path": "embeddings/"}
     ],
     "settings": {
-      "steps": 25,
-      "sampler": "dpmpp_2m",
+      "steps": 28,
+      "sampler": "dpmpp_2m_sde",
       "scheduler": "karras",
       "cfg": 7.0,
-      "resolution": "1024x1024"
+      "resolution": "832x1216 (portrait)"
     },
-    "notes": "SDXL-based checkpoint. Use quality tags like 'masterpiece, best quality' for better results. Negative prompt is important for photorealistic output."
+    "notes": "Embeddings auto-loaded via 'embedding:filename' syntax. These are tuned for the Realism Illustrious model."
   }
 }

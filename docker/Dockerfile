@@ -50,10 +50,15 @@ WORKDIR /workspace/ComfyUI/custom_nodes
 # ComfyUI-Manager
 RUN git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git
 
-# VibeVoice-ComfyUI
-RUN git clone --depth 1 https://github.com/AIFSH/VibeVoice-ComfyUI.git && \
+# VibeVoice-ComfyUI (Enemyx-net fork - v1.8.1+, actively maintained)
+RUN git clone --depth 1 https://github.com/Enemyx-net/VibeVoice-ComfyUI.git && \
     cd VibeVoice-ComfyUI && \
-    pip install --no-cache-dir TTS bitsandbytes>=0.48.1 || true
+    pip install --no-cache-dir -r requirements.txt || true
+
+# ComfyUI-Chatterbox (Resemble AI TTS - zero-shot voice cloning)
+RUN git clone --depth 1 https://github.com/thefader/ComfyUI-Chatterbox.git && \
+    cd ComfyUI-Chatterbox && \
+    pip install --no-cache-dir -r requirements.txt || true
 
 # ComfyUI-SCAIL-Pose
 RUN git clone --depth 1 https://github.com/kijai/ComfyUI-SCAIL-Pose.git
@@ -63,10 +68,11 @@ RUN git clone --depth 1 https://github.com/Fannovel16/comfyui_controlnet_aux.git
     cd comfyui_controlnet_aux && \
     pip install --no-cache-dir -r requirements.txt || true
 
-# ComfyUI-XTTS (Coqui XTTS v2)
+# ComfyUI-XTTS (Coqui XTTS v2) - NOTE: Has transformers compatibility issues
+# Kept for future compatibility but may not load - use VibeVoice instead
 RUN git clone --depth 1 https://github.com/AIFSH/ComfyUI-XTTS.git && \
     cd ComfyUI-XTTS && \
-    pip install --no-cache-dir TTS pydub || true
+    pip install --no-cache-dir TTS pydub srt audiotsm || true
 
 # TurboDiffusion (100-200x video speedup for WAN models)
 RUN git clone --depth 1 https://github.com/anveshane/Comfyui_turbodiffusion.git && \
@@ -80,6 +86,12 @@ RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WAN.git && \
 
 # CivitAI integration
 RUN pip install --no-cache-dir civitai-downloader
+
+# NOTE: XTTS API Server runs in separate container (docker compose --profile xtts)
+# Cannot bundle due to transformers version conflict:
+# - xtts-api-server requires transformers==4.36.2
+# - ComfyUI/VibeVoice requires transformers>=4.51.3 (for Qwen2Tokenizer)
+# See docker-compose.yml for XTTS service configuration
 
 # ============================================
 # Layer 4: Additional Dependencies
@@ -110,7 +122,7 @@ RUN mkdir -p /var/run/sshd && \
 # Create model directories
 RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision}
 
-# Expose ports
+# Expose ports (22=SSH, 8188=ComfyUI, 8888=Jupyter)
 EXPOSE 22 8188 8888
 
 # Working directory

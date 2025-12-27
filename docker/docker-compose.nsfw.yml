@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  hearmeman-nsfw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hearmeman-nsfw:local
+    container_name: hearmeman-nsfw
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      # Core models
+      - ENABLE_VIBEVOICE=true
+      - VIBEVOICE_MODEL=Large
+      - ENABLE_CONTROLNET=true
+      - CONTROLNET_MODELS=canny,depth,openpose
+      # NSFW-capable models
+      - ENABLE_ILLUSTRIOUS=true
+      - ENABLE_ILLUSTRIOUS_EMBEDDINGS=true
+      # CivitAI NSFW LoRAs
+      - ENABLE_CIVITAI=true
+      - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+      - CIVITAI_LORAS=1906687,1736657
+      # Storage
+      - STORAGE_MODE=persistent
+      - COMFYUI_PORT=8188
+    ports:
+      - "8188:8188"
+      - "8888:8888"
+      - "2222:22"
+    volumes:
+      - ./models:/workspace/ComfyUI/models
+      - ./output:/workspace/ComfyUI/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
