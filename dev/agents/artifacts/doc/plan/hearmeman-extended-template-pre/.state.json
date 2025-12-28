@@ -1,0 +1,19 @@
+{
+  "skill": "plan04",
+  "name": "hearmeman-extended-template",
+  "task": "Plan: hearmeman-extended-template",
+  "status": "completed",
+  "started_at": "2025-12-24T22:01:36-06:00",
+  "completed_at": "2025-12-24T22:13:01-06:00",
+  "duration_seconds": 685,
+  "total_passes": 1,
+  "early_stopped": false,
+  "ge_ready": true,
+  "metrics": {
+    "clarity_score": 8.0,
+    "actionability_percent": null
+  },
+  "phases": [],
+  "passes": [],
+  "errors": []
+}
