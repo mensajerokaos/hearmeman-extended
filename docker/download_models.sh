@@ -55,7 +55,7 @@ civitai_download() {
     fi
 }
 
-MODELS_DIR="/workspace/ComfyUI/models"
+MODELS_DIR="${MODELS_DIR:-/workspace/ComfyUI/models}"
 
 # ============================================
 # VibeVoice Models
