@@ -330,4 +330,221 @@ if [ "${ENABLE_CIVITAI:-false}" = "true" ] && [ -n "$CIVITAI_LORAS" ]; then
     done
 fi
 
+# ============================================
+# TIER 1: Consumer GPU Models (8-24GB VRAM)
+# ============================================
+
+# ============================================
+# Qwen-Image-Edit-2511 (Instruction-based Image Editing)
+# VRAM: ~10-15GB | Size: ~15GB
+# ============================================
+if [ "${ENABLE_QWEN_EDIT:-false}" = "true" ]; then
+    echo ""
+    echo "[Qwen-Edit] Downloading Qwen-Image-Edit-2511..."
+
+    python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('Qwen/Qwen-Image-Edit-2511',
+    local_dir='$MODELS_DIR/qwen/Qwen-Image-Edit-2511',
+    local_dir_use_symlinks=False)
+" 2>&1 || echo "  [Note] Qwen-Edit will download on first use"
+
+    echo "[Qwen-Edit] Download complete"
+fi
+
+# ============================================
+# Genfocus (Depth-of-Field Refocusing)
+# VRAM: ~12GB | Size: ~12GB
+# ============================================
+if [ "${ENABLE_GENFOCUS:-false}" = "true" ]; then
+    echo ""
+    echo "[Genfocus] Downloading model components..."
+
+    hf_download "nycu-cplab/Genfocus-Model" \
+        "bokehNet.safetensors" \
+        "$MODELS_DIR/genfocus/bokehNet.safetensors"
+
+    hf_download "nycu-cplab/Genfocus-Model" \
+        "deblurNet.safetensors" \
+        "$MODELS_DIR/genfocus/deblurNet.safetensors"
+
+    hf_download "nycu-cplab/Genfocus-Model" \
+        "checkpoints/depth_pro.pt" \
+        "$MODELS_DIR/genfocus/depth_pro.pt"
+
+    echo "[Genfocus] Download complete"
+fi
+
+# ============================================
+# MVInverse (Multi-view Inverse Rendering)
+# VRAM: ~8GB | Size: ~8GB
+# ============================================
+if [ "${ENABLE_MVINVERSE:-false}" = "true" ]; then
+    echo ""
+    echo "[MVInverse] Cloning repository and downloading checkpoints..."
+
+    MVINVERSE_DIR="$MODELS_DIR/mvinverse"
+    if [ ! -d "$MVINVERSE_DIR/mvinverse" ]; then
+        git clone --depth 1 https://github.com/Maddog241/mvinverse.git "$MVINVERSE_DIR/mvinverse" || \
+            echo "  [Error] Failed to clone MVInverse repo"
+        echo "  [Note] Checkpoints auto-download on first inference via --ckpt flag"
+    else
+        echo "  [Skip] MVInverse repository already exists"
+    fi
+
+    echo "[MVInverse] Setup complete"
+fi
+
+# ============================================
+# TIER 2: Prosumer GPU Models (24GB+ with CPU offload)
+# ============================================
+
+# ============================================
+# FlashPortrait (Portrait Animation)
+# VRAM: 60GB (full) | 30GB (model_cpu_offload) | 10GB (sequential_cpu_offload)
+# RAM: 32GB minimum for CPU offload modes
+# Size: ~60GB
+# ============================================
+if [ "${ENABLE_FLASHPORTRAIT:-false}" = "true" ]; then
+    echo ""
+    echo "[FlashPortrait] Downloading models..."
+
+    case "${GPU_MEMORY_MODE:-auto}" in
+        "full"|"model_full_load")
+            echo "  [FlashPortrait] Full model load mode (60GB VRAM required)"
+            ;;
+        "sequential_cpu_offload")
+            echo "  [FlashPortrait] Sequential CPU offload mode (10GB VRAM + 32GB+ RAM)"
+            ;;
+        "model_cpu_offload")
+            echo "  [FlashPortrait] Model CPU offload mode (30GB VRAM)"
+            ;;
+        "auto")
+            echo "  [FlashPortrait] Auto mode - will detect VRAM at startup"
+            ;;
+    esac
+
+    # FlashPortrait main checkpoint
+    python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('FrancisRing/FlashPortrait',
+    local_dir='$MODELS_DIR/flashportrait/FlashPortrait',
+    local_dir_use_symlinks=False)
+" 2>&1 || echo "  [Note] FlashPortrait will download on first use"
+
+    # Wan2.1 I2V 14B 720P (required dependency) - check if already exists
+    if [ ! -f "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" ]; then
+        echo "  [FlashPortrait] Downloading Wan2.1 I2V 720p dependency..."
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" \
+            "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors"
+    fi
+
+    echo "[FlashPortrait] Download complete"
+fi
+
+# ============================================
+# StoryMem (Multi-Shot Video Storytelling)
+# Based on Wan2.2, uses LoRA variants (MI2V, MM2V)
+# VRAM: ~20-24GB (base models + LoRA)
+# Size: ~20GB (LoRAs) + Wan2.1 base models
+# ============================================
+if [ "${ENABLE_STORYMEM:-false}" = "true" ]; then
+    echo ""
+    echo "[StoryMem] Downloading models and dependencies..."
+
+    # Ensure Wan2.1 T2V base model
+    if [ ! -f "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" ]; then
+        echo "  [StoryMem] Downloading Wan2.1 T2V 14B base model..."
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
+            "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors"
+    fi
+
+    # Ensure Wan2.1 I2V base model
+    if [ ! -f "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" ]; then
+        echo "  [StoryMem] Downloading Wan2.1 I2V 720p 14B base model..."
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" \
+            "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors"
+    fi
+
+    # Ensure text encoder
+    if [ ! -f "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" ]; then
+        echo "  [StoryMem] Downloading UMT5-XXL text encoder..."
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+    fi
+
+    # Ensure VAE
+    if [ ! -f "$MODELS_DIR/vae/wan_2.1_vae.safetensors" ]; then
+        echo "  [StoryMem] Downloading WAN VAE..."
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/vae/wan_2.1_vae.safetensors" \
+            "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+    fi
+
+    # StoryMem LoRA variants
+    echo "  [StoryMem] Downloading StoryMem LoRA variants..."
+    python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('Kevin-thu/StoryMem',
+    local_dir='$MODELS_DIR/storymem/StoryMem',
+    local_dir_use_symlinks=False)
+" 2>&1 || echo "  [Note] StoryMem LoRAs will download on first use"
+
+    echo "[StoryMem] Download complete"
+fi
+
+# ============================================
+# TIER 3: Datacenter GPU Models (48-80GB VRAM)
+# ============================================
+
+# ============================================
+# InfCam (Camera-Controlled Video Generation)
+# WARNING: EXPERIMENTAL - DATACENTER TIER ONLY
+# VRAM: 50GB+ inference, 52-56GB/GPU training
+# Requires: A100 80GB or H100 80GB
+# Size: ~50GB+
+# ============================================
+if [ "${ENABLE_INFCAM:-false}" = "true" ]; then
+    if [ "${GPU_TIER}" = "datacenter" ]; then
+        echo ""
+        echo "[InfCam] EXPERIMENTAL - Downloading for datacenter tier..."
+        echo "  [Warning] Requires A100 80GB or H100 80GB GPU"
+
+        # InfCam main checkpoint
+        python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('emjay73/InfCam',
+    local_dir='$MODELS_DIR/infcam/InfCam',
+    local_dir_use_symlinks=False)
+" 2>&1 || echo "  [Note] InfCam will download on first use"
+
+        # UniDepth-v2-vitl14 (required dependency)
+        python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('lpiccinelli/unidepth-v2-vitl14',
+    local_dir='$MODELS_DIR/infcam/unidepth-v2-vitl14',
+    local_dir_use_symlinks=False)
+" 2>&1 || echo "  [Note] UniDepth will download on first use"
+
+        # Wan2.1 base model for InfCam
+        if [ ! -f "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" ]; then
+            echo "  [InfCam] Downloading Wan2.1 T2V base model..."
+            hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+                "split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
+                "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors"
+        fi
+
+        echo "[InfCam] Download complete"
+    else
+        echo ""
+        echo "[InfCam] Skipped - GPU_TIER must be 'datacenter' (current: ${GPU_TIER:-consumer})"
+        echo "  [Info] InfCam requires 50GB+ VRAM (A100/H100)"
+    fi
+fi
+
+echo ""
 echo "[Models] Download complete"

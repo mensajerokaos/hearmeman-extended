@@ -13,6 +13,29 @@ ENV PYTHONUNBUFFERED=1
 ENV SHELL=/bin/bash
 ENV COMFYUI_PORT=8188
 
+# GPU Tier and Model Toggle Configuration
+ENV GPU_TIER="consumer"
+# Options: consumer, prosumer, datacenter
+
+# Tier 1: Consumer GPU (8-24GB VRAM)
+ENV ENABLE_GENFOCUS="false"
+ENV ENABLE_QWEN_EDIT="false"
+ENV ENABLE_MVINVERSE="false"
+
+# Tier 2: Prosumer GPU (24GB+ with CPU offload)
+ENV ENABLE_FLASHPORTRAIT="false"
+ENV ENABLE_STORYMEM="false"
+
+# Tier 3: Datacenter GPU (48-80GB VRAM - A100/H100)
+ENV ENABLE_INFCAM="false"
+
+# GPU Memory Management
+ENV GPU_MEMORY_MODE="auto"
+# Options: auto, full, sequential_cpu_offload, model_cpu_offload
+
+ENV COMFYUI_ARGS=""
+# For: --lowvram, --medvram, --novram, --cpu-vae, etc.
+
 # ============================================
 # Layer 1: System Dependencies
 # ============================================
@@ -102,7 +125,22 @@ RUN pip install --no-cache-dir \
     accelerate \
     safetensors \
     sentencepiece \
-    protobuf
+    protobuf \
+    # New dependencies for AI models
+    cupy-cuda12x \
+    imageio[ffmpeg] \
+    einops \
+    modelscope \
+    ftfy \
+    lpips \
+    lightning \
+    pandas \
+    matplotlib \
+    wandb \
+    ffmpeg-python
+
+# Flash Attention (optional - for FlashPortrait/InfCam acceleration)
+RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed - will use standard attention"
 
 # ============================================
 # Layer 5: Scripts and Configuration
@@ -119,8 +157,8 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-# Create model directories
-RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision}
+# Create model directories (including new AI models)
+RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision,genfocus,qwen,mvinverse,flashportrait,storymem,infcam}
 
 # Expose ports (22=SSH, 8188=ComfyUI, 8888=Jupyter)
 EXPOSE 22 8188 8888

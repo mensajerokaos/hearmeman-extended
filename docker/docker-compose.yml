@@ -45,6 +45,7 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+      # Existing models
       - ENABLE_VIBEVOICE=true
       - ENABLE_CONTROLNET=true
       - ENABLE_ILLUSTRIOUS=false
@@ -52,6 +53,18 @@ services:
       - VIBEVOICE_MODEL=Large
       - STORAGE_MODE=persistent
       - COMFYUI_PORT=8188
+      # GPU Configuration (auto-detect or manual override)
+      - GPU_TIER=consumer
+      - GPU_MEMORY_MODE=auto
+      # Tier 1: Consumer GPU (8-24GB VRAM)
+      - ENABLE_GENFOCUS=false
+      - ENABLE_QWEN_EDIT=false
+      - ENABLE_MVINVERSE=false
+      # Tier 2: Prosumer GPU (24GB+ with CPU offload)
+      - ENABLE_FLASHPORTRAIT=false
+      - ENABLE_STORYMEM=false
+      # Tier 3: Datacenter GPU (48-80GB A100/H100)
+      - ENABLE_INFCAM=false
     ports:
       - "8188:8188"
       - "8888:8888"

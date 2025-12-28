@@ -31,6 +31,68 @@ export STORAGE_MODE="$DETECTED_STORAGE"
 echo "[Storage] Mode: $STORAGE_MODE"
 
 # ============================================
+# GPU VRAM Detection & Configuration
+# ============================================
+detect_gpu_config() {
+    # Detect GPU VRAM in MB
+    GPU_VRAM=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -n 1)
+
+    if [ -z "$GPU_VRAM" ]; then
+        echo "  [Warning] Could not detect GPU VRAM, using defaults"
+        GPU_VRAM=0
+    fi
+
+    echo "[GPU] Detected VRAM: ${GPU_VRAM} MB"
+
+    # Auto-detect GPU tier if not set
+    if [ -z "$GPU_TIER" ] || [ "$GPU_TIER" = "auto" ]; then
+        if (( GPU_VRAM >= 48000 )); then
+            export GPU_TIER="datacenter"
+        elif (( GPU_VRAM >= 20000 )); then
+            export GPU_TIER="prosumer"
+        else
+            export GPU_TIER="consumer"
+        fi
+        echo "[GPU] Auto-detected tier: $GPU_TIER"
+    else
+        echo "[GPU] Configured tier: $GPU_TIER"
+    fi
+
+    # Auto-detect memory mode if set to "auto"
+    if [ "$GPU_MEMORY_MODE" = "auto" ]; then
+        if (( GPU_VRAM >= 48000 )); then
+            export GPU_MEMORY_MODE="full"
+        elif (( GPU_VRAM >= 24000 )); then
+            export GPU_MEMORY_MODE="model_cpu_offload"
+        else
+            export GPU_MEMORY_MODE="sequential_cpu_offload"
+        fi
+        echo "[GPU] Auto-detected memory mode: $GPU_MEMORY_MODE"
+    fi
+
+    # Auto-detect ComfyUI VRAM flags if not set
+    if [ -z "$COMFYUI_ARGS" ]; then
+        if (( GPU_VRAM < 8000 )); then
+            export COMFYUI_ARGS="--lowvram --cpu-vae --force-fp16"
+        elif (( GPU_VRAM < 12000 )); then
+            export COMFYUI_ARGS="--lowvram --force-fp16"
+        elif (( GPU_VRAM < 16000 )); then
+            export COMFYUI_ARGS="--medvram --cpu-text-encoder --force-fp16"
+        elif (( GPU_VRAM < 24000 )); then
+            export COMFYUI_ARGS="--normalvram --force-fp16"
+        else
+            export COMFYUI_ARGS=""
+        fi
+
+        if [ -n "$COMFYUI_ARGS" ]; then
+            echo "[GPU] Auto-detected ComfyUI args: $COMFYUI_ARGS"
+        fi
+    fi
+}
+
+detect_gpu_config
+
+# ============================================
 # SSH Setup
 # ============================================
 if [[ -n "$PUBLIC_KEY" ]]; then
@@ -80,9 +142,13 @@ echo "[Models] Starting model downloads..."
 # Start ComfyUI
 # ============================================
 echo "[ComfyUI] Starting on port ${COMFYUI_PORT:-8188}..."
+if [ -n "$COMFYUI_ARGS" ]; then
+    echo "[ComfyUI] Using VRAM args: $COMFYUI_ARGS"
+fi
 cd /workspace/ComfyUI
 exec python main.py \
     --listen 0.0.0.0 \
     --port ${COMFYUI_PORT:-8188} \
     --enable-cors-header \
-    --preview-method auto
+    --preview-method auto \
+    $COMFYUI_ARGS
