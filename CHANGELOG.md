@@ -108,13 +108,27 @@ Track across all sessions:
   - Qwen-Image-Edit-2511
   - InfCam (camera-controlled video)
   - MVInverse (multi-view consistency)
-- [>] Research Qwen3-TTS vs Chatterbox comparison
+- [x] Research Qwen3-TTS vs Chatterbox comparison
+- [x] Create comprehensive PRD for 6 AI models (hearmeman-all-models.md)
+  - Phase 1: Environment variables + Dockerfile
+  - Phase 2: Tier 1 (Consumer GPU) downloads
+  - Phase 3: Tier 2 (Prosumer GPU) downloads
+  - Phase 4: Tier 3 (Datacenter GPU) downloads
+  - Phase 5: ComfyUI custom node wrappers
+  - Phase 6: CPU offloading configuration
+- [x] Document CPU offloading options for smaller VRAM GPUs
+- [x] Include FlashPortrait and StoryMem in research
 
 **Decisions**:
 - XTTS v2 removed from template - limited use case compared to Chatterbox
 - Winner for English voice cloning: Chatterbox Original (CFG + exaggeration)
 - VibeVoice Q8 viable for 16GB GPU but slower than Chatterbox
+- InfCam included for datacenter testing despite 50GB+ VRAM requirement
+- Models organized into 3 GPU tiers: Consumer (8-24GB), Prosumer (24GB+), Datacenter (48-80GB)
 
-**Status**: In Progress
+**Status**: Completed
+
+**End**: 2025-12-28 14:24:42 CST (CDMX)
+**Duration**: ~10 hours 28 minutes
 
 ---
