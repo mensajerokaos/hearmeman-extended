@@ -2,34 +2,6 @@ version: '3.8'
 
 services:
   # ===========================================
-  # XTTS v2 Voice Cloning Server (API + UI)
-  # Web UI: http://localhost:8020/docs (Swagger)
-  # API: http://localhost:8020/tts_to_audio
-  # ===========================================
-  xtts:
-    image: daswer123/xtts-api-server:latest
-    container_name: xtts
-    runtime: nvidia
-    ports:
-      - "8020:8020"
-    environment:
-      - DEVICE=cuda
-    volumes:
-      - ./xtts-models:/root/.cache/huggingface
-      - ./xtts-speakers:/root/speakers
-      - ./output:/root/output
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    restart: unless-stopped
-    profiles:
-      - xtts  # Only starts with: docker compose --profile xtts up
-
-  # ===========================================
   # Chatterbox TTS (Resemble AI)
   # API: http://localhost:8000/health
   # OpenAI-compatible: http://localhost:8000/v1/audio/speech
@@ -62,7 +34,7 @@ services:
   # ===========================================
   # ComfyUI Main Service
   # ComfyUI: http://localhost:8188
-  # TTS profiles: xtts, chatterbox
+  # TTS profile: chatterbox
   # ===========================================
   hearmeman-extended:
     build:
@@ -100,5 +72,3 @@ services:
 volumes:
   models:
   output:
-  xtts-models:
-  xtts-speakers:

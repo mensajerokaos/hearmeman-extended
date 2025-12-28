@@ -84,3 +84,37 @@ Track across all sessions:
 
 ---
 ```
+
+---
+
+## 2025-12-28 Session 1
+
+**Start**: 2025-12-28 03:56:00 CST (CDMX)
+**Author**: oz + Claude Opus 4.5
+
+**Tasks**:
+- [x] Complete voice cloning tests across 5 TTS models
+  - Chatterbox Original (EN): 15 files with CFG & exaggeration
+  - Chatterbox Multilingual: 27 files (EN + ES)
+  - Chatterbox Turbo: 15 files
+  - XTTS v2: 15 files (fixed speaker loading)
+  - VibeVoice Q8: 12 files (3 timeouts)
+- [x] Fix XTTS v2 empty files - needed speaker folder refresh
+- [x] Test VibeVoice Large-Q8 (11GB) as alternative to Large (18GB)
+- [x] Commit TTS comparison results (124 files, 84 voice samples)
+- [x] Remove XTTS v2 from docker-compose.yml (not needed for project)
+- [>] Research new AI models for RunPod template
+  - Generative Refocusing (GenFocus)
+  - Qwen-Image-Edit-2511
+  - InfCam (camera-controlled video)
+  - MVInverse (multi-view consistency)
+- [>] Research Qwen3-TTS vs Chatterbox comparison
+
+**Decisions**:
+- XTTS v2 removed from template - limited use case compared to Chatterbox
+- Winner for English voice cloning: Chatterbox Original (CFG + exaggeration)
+- VibeVoice Q8 viable for 16GB GPU but slower than Chatterbox
+
+**Status**: In Progress
+
+---
