@@ -93,20 +93,19 @@ RUN git clone --depth 1 https://github.com/Fannovel16/comfyui_controlnet_aux.git
     cd comfyui_controlnet_aux && \
     pip install --no-cache-dir -r requirements.txt || true
 
-# ComfyUI-XTTS (Coqui XTTS v2) - NOTE: Has transformers compatibility issues
-# Kept for future compatibility but may not load - use VibeVoice instead
-RUN git clone --depth 1 https://github.com/AIFSH/ComfyUI-XTTS.git && \
-    cd ComfyUI-XTTS && \
-    pip install --no-cache-dir TTS pydub srt audiotsm || true
-
 # TurboDiffusion (100-200x video speedup for WAN models)
 RUN git clone --depth 1 https://github.com/anveshane/Comfyui_turbodiffusion.git && \
     cd Comfyui_turbodiffusion && \
     pip install --no-cache-dir -r requirements.txt || true
 
-# ComfyUI-WAN (WAN 2.2 video generation nodes)
-RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WAN.git && \
-    cd ComfyUI-WAN && \
+# ComfyUI-WanVideoWrapper (WAN 2.2/2.5 video generation nodes)
+RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    cd ComfyUI-WanVideoWrapper && \
+    pip install --no-cache-dir -r requirements.txt || true
+
+# ComfyUI-VideoHelperSuite (video processing utilities)
+RUN git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    cd ComfyUI-VideoHelperSuite && \
     pip install --no-cache-dir -r requirements.txt || true
 
 # CivitAI integration
@@ -124,12 +123,6 @@ RUN cd /workspace/ComfyUI/custom_nodes/ComfyUI-Genfocus && \
 COPY custom_nodes/ComfyUI-MVInverse /workspace/ComfyUI/custom_nodes/ComfyUI-MVInverse
 RUN cd /workspace/ComfyUI/custom_nodes/ComfyUI-MVInverse && \
     pip install --no-cache-dir -r requirements.txt || true
-
-# NOTE: XTTS API Server runs in separate container (docker compose --profile xtts)
-# Cannot bundle due to transformers version conflict:
-# - xtts-api-server requires transformers==4.36.2
-# - ComfyUI/VibeVoice requires transformers>=4.51.3 (for Qwen2Tokenizer)
-# See docker-compose.yml for XTTS service configuration
 
 # ============================================
 # Layer 4: Additional Dependencies
@@ -162,8 +155,9 @@ RUN pip install --no-cache-dir \
     opencv-python>=4.5.0 \
     timm
 
-# Flash Attention (optional - for FlashPortrait/InfCam acceleration)
-RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed - will use standard attention"
+# Flash Attention - DISABLED due to ABI compatibility issues with kornia
+# Uncomment only if you need FlashPortrait/InfCam and have matching CUDA/PyTorch
+# RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed"
 
 # ============================================
 # Layer 5: Scripts and Configuration
