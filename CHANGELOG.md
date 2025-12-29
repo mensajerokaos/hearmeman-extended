@@ -110,9 +110,55 @@ Each session logs:
 **Duration**: ~1 hour
 
 **Next Steps**:
-- [ ] Fix VibeVoice Qwen tokenizer (bead runpod-6s9)
-- [ ] Stage 4: VibeVoice TTS test
+- [x] Fix VibeVoice Qwen tokenizer (bead runpod-6s9)
+- [x] Stage 4: VibeVoice TTS test
 - [ ] Stage 5: Multi-model workflow test
+
+---
+
+## 2025-12-29 Session 3: VibeVoice Fixed & Security Hardening
+
+**Start**: 2025-12-29 13:32 CST (CDMX)
+**Author**: oz + Claude Opus 4.5
+
+**Tasks**:
+- [x] Stage 4: VibeVoice TTS test - SUCCESS
+  - Downloaded Qwen tokenizer manually
+  - Generated test audio (128KB FLAC)
+  - Synced outputs to R2: `runpod/outputs/2024-12-29/`
+- [x] Fix download_models.sh for auto-download
+  - Corrected VibeVoice repo: `AIFSH/VibeVoice-Large` → `aoi-ot/VibeVoice-Large`
+  - Added automatic Qwen tokenizer download
+  - Closed bead runpod-6s9
+- [x] Security hardening
+  - Removed `.env` from git tracking (had exposed CivitAI key)
+  - Created `.gitignore` and `.env.example`
+  - Rotated CivitAI API key
+  - Added RunPod Secrets documentation
+- [x] RunPod Secrets setup
+  - Created secrets via GraphQL API: `r2_access_key`, `r2_secret_key`, `civitai_key`
+  - Updated CLAUDE.md with `{{RUNPOD_SECRET_*}}` syntax
+- [x] Docker image pushed to GHCR (11.3GB)
+
+**Session Outputs** (R2 presigned URLs):
+- `vibevoice_test_00001_.flac` - TTS audio test
+- `wan21_puppy_00001.webm` - Video generation test
+- `wan21_puppy_00001.png` - Video thumbnail
+
+**Key Learnings**:
+1. GHCR has 10GB/layer limit (our layers are <7GB, OK)
+2. RunPod secrets use `{{RUNPOD_SECRET_name}}` syntax
+3. Always gitignore `.env` files with real credentials
+
+**Status**: Completed - Ready for Stage 5
+
+**End**: 2025-12-29 14:45 CST (CDMX)
+**Duration**: ~1 hour 15 minutes
+
+**Next Steps**:
+- [ ] Stage 5: Multi-model workflow test (WAN + VibeVoice together)
+- [ ] Test auto-download with fresh pod (150GB ephemeral)
+- [ ] Test R2 auto-sync daemon
 
 ---
 
