@@ -273,6 +273,62 @@ python3 /upload_to_r2.py --prefix videos /workspace/ComfyUI/output/video.mp4
 
 ---
 
+## RunPod Deployment Requirements
+
+### Pod Creation Command (Production-Ready)
+
+```bash
+~/.local/bin/runpodctl create pod \
+  --name "illustrious-$(date +%H%M)" \
+  --imageName "ghcr.io/mensajerokaos/hearmeman-extended:latest" \
+  --gpuType "NVIDIA GeForce RTX 4090" \
+  --gpuCount 1 \
+  --containerDiskSize 20 \
+  --volumeSize 15 \
+  --secureCloud \
+  --ports "8188/http" \
+  --ports "19123/http" \
+  --env "ENABLE_ILLUSTRIOUS=true" \
+  --env "CIVITAI_API_KEY=<key>" \
+  --env "R2_ACCESS_KEY_ID=<key>" \
+  --env "R2_SECRET_ACCESS_KEY=<secret>" \
+  --env "R2_ENDPOINT=https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorage.com" \
+  --env "R2_BUCKET=runpod" \
+  --env "ENABLE_R2_SYNC=true"
+```
+
+### Critical Learnings (Dec 2024)
+
+| Requirement | Details |
+|-------------|---------|
+| **Web Terminal** | MUST enable `--ports "8188/http"` for web access |
+| **Secure Cloud** | Use `--secureCloud` for dedicated 25Gbps bandwidth |
+| **Datacenter Speed** | US: ~1 sec startup, EU: 4+ min startup - prefer US |
+| **Model Downloads** | Secure Cloud: 51 MB/s, Community Cloud: variable |
+| **CivitAI Fallback** | Curl fallback handles 307 redirects automatically |
+| **Model Filenames** | CivitAI downloads as `model_<id>.safetensors` |
+
+### Datacenter Speed Comparison
+
+| Region | Startup Time | Network Speed | Recommendation |
+|--------|--------------|---------------|----------------|
+| US (Secure Cloud) | ~37 sec | 51 MB/s | **Recommended** |
+| US (Community) | ~1 sec | Variable | Good for testing |
+| EU (CZ) | 4+ min | Unknown | Avoid for speed-critical |
+| UAE | 2+ min | Slow | Avoid |
+
+### Tested Configurations
+
+| Config | GPU | Cost | Result |
+|--------|-----|------|--------|
+| Illustrious (US Secure) | RTX 4090 | $0.59/hr | ✅ Working |
+| Container startup | - | - | ~37 sec |
+| Model download (6.5GB) | - | - | ~2 min |
+| Image generation | - | - | ~5 sec |
+| R2 sync | - | - | Automatic |
+
+---
+
 # Project Context - Task Logging & Agent Delegation
 
 ## Task Logging System
