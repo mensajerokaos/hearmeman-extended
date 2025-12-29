@@ -58,7 +58,7 @@ services:
       - GPU_MEMORY_MODE=auto
       # Tier 1: Consumer GPU (8-24GB VRAM)
       - ENABLE_GENFOCUS=true
-      - ENABLE_QWEN_EDIT=false
+      - ENABLE_QWEN_EDIT=true
       - QWEN_EDIT_MODEL=Q4_K_M
       # Options: Q4_K_M (13GB), Q5_K_M (15GB), Q8_0 (22GB), full (54GB)
       - ENABLE_MVINVERSE=true

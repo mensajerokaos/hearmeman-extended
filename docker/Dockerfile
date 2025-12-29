@@ -112,6 +112,19 @@ RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WAN.git && \
 # CivitAI integration
 RUN pip install --no-cache-dir civitai-downloader
 
+# ============================================
+# Layer 3.5: Custom AI Model Wrappers (Local)
+# ============================================
+# ComfyUI-Genfocus (Depth-of-Field Refocusing)
+COPY custom_nodes/ComfyUI-Genfocus /workspace/ComfyUI/custom_nodes/ComfyUI-Genfocus
+RUN cd /workspace/ComfyUI/custom_nodes/ComfyUI-Genfocus && \
+    pip install --no-cache-dir -r requirements.txt || true
+
+# ComfyUI-MVInverse (Multi-view Inverse Rendering)
+COPY custom_nodes/ComfyUI-MVInverse /workspace/ComfyUI/custom_nodes/ComfyUI-MVInverse
+RUN cd /workspace/ComfyUI/custom_nodes/ComfyUI-MVInverse && \
+    pip install --no-cache-dir -r requirements.txt || true
+
 # NOTE: XTTS API Server runs in separate container (docker compose --profile xtts)
 # Cannot bundle due to transformers version conflict:
 # - xtts-api-server requires transformers==4.36.2
@@ -142,7 +155,12 @@ RUN pip install --no-cache-dir \
     ffmpeg-python \
     # Dependencies for custom nodes
     audiotsm \
-    loguru
+    loguru \
+    # Dependencies for Genfocus/MVInverse
+    diffusers>=0.21.0 \
+    peft>=0.4.0 \
+    opencv-python>=4.5.0 \
+    timm
 
 # Flash Attention (optional - for FlashPortrait/InfCam acceleration)
 RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed - will use standard attention"

@@ -1,0 +1,20 @@
+# ComfyUI-MVInverse Requirements
+# Author: oz
+# Date: 2025-12-29
+
+# Core PyTorch (ComfyUI provides these, but listed for standalone use)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# MVInverse dependencies
+pillow>=9.0.0
+opencv-python>=4.5.0
+huggingface_hub>=0.16.0
+
+# MVInverse package (install from source)
+# pip install -e <path-to-mvinverse-repo>
+# OR
+# pip install git+https://github.com/Maddog241/mvinverse.git
+
+# Optional: For better performance
+# xformers>=0.0.20  # Memory-efficient attention (CUDA only)
