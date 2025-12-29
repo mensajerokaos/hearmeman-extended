@@ -4,6 +4,11 @@
 ARG BASE_IMAGE=runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 FROM ${BASE_IMAGE}
 
+# OCI Labels for GHCR linking
+LABEL org.opencontainers.image.source=https://github.com/mensajerokaos/hearmeman-extended
+LABEL org.opencontainers.image.description="ComfyUI with AI video/audio generation (WAN, VibeVoice, TurboDiffusion)"
+LABEL org.opencontainers.image.licenses=MIT
+
 # Build arguments
 ARG COMFYUI_COMMIT=latest
 ARG DEBIAN_FRONTEND=noninteractive
