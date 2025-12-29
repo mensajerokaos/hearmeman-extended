@@ -20,6 +20,8 @@ ENV GPU_TIER="consumer"
 # Tier 1: Consumer GPU (8-24GB VRAM)
 ENV ENABLE_GENFOCUS="false"
 ENV ENABLE_QWEN_EDIT="false"
+ENV QWEN_EDIT_MODEL="Q4_K_M"
+# Options: Q4_K_M (13GB), Q5_K_M (15GB), Q8_0 (22GB), full (54GB)
 ENV ENABLE_MVINVERSE="false"
 
 # Tier 2: Prosumer GPU (24GB+ with CPU offload)

@@ -336,18 +336,49 @@ fi
 
 # ============================================
 # Qwen-Image-Edit-2511 (Instruction-based Image Editing)
-# VRAM: ~10-15GB | Size: ~15GB
+# GGUF quantized versions from unsloth for consumer GPUs
+# Full version for datacenter GPUs
 # ============================================
 if [ "${ENABLE_QWEN_EDIT:-false}" = "true" ]; then
     echo ""
-    echo "[Qwen-Edit] Downloading Qwen-Image-Edit-2511..."
+    QWEN_MODEL="${QWEN_EDIT_MODEL:-Q4_K_M}"
 
-    python -c "
+    case "$QWEN_MODEL" in
+        "full")
+            echo "[Qwen-Edit] Downloading FULL model (54GB - datacenter only)..."
+            python -c "
 from huggingface_hub import snapshot_download
 snapshot_download('Qwen/Qwen-Image-Edit-2511',
     local_dir='$MODELS_DIR/qwen/Qwen-Image-Edit-2511',
     local_dir_use_symlinks=False)
 " 2>&1 || echo "  [Note] Qwen-Edit will download on first use"
+            ;;
+        "Q4_K_M"|"Q5_K_M"|"Q6_K"|"Q8_0"|"Q2_K"|"Q3_K_M")
+            echo "[Qwen-Edit] Downloading GGUF ${QWEN_MODEL} quantized version..."
+            GGUF_FILE="qwen-image-edit-2511-${QWEN_MODEL}.gguf"
+            GGUF_DEST="$MODELS_DIR/qwen/${GGUF_FILE}"
+
+            if [ ! -f "$GGUF_DEST" ]; then
+                mkdir -p "$MODELS_DIR/qwen"
+                echo "  [Download] ${GGUF_FILE} from unsloth/Qwen-Image-Edit-2511-GGUF"
+                python -c "
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+    repo_id='unsloth/Qwen-Image-Edit-2511-GGUF',
+    filename='${GGUF_FILE}',
+    local_dir='$MODELS_DIR/qwen',
+    local_dir_use_symlinks=False
+)
+" 2>&1 || echo "  [Error] Failed to download GGUF model"
+            else
+                echo "  [Skip] ${GGUF_FILE} already exists"
+            fi
+            ;;
+        *)
+            echo "[Qwen-Edit] Unknown model type: $QWEN_MODEL"
+            echo "  Valid options: Q4_K_M, Q5_K_M, Q6_K, Q8_0, Q2_K, Q3_K_M, full"
+            ;;
+    esac
 
     echo "[Qwen-Edit] Download complete"
 fi
