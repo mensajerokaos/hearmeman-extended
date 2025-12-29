@@ -135,12 +135,31 @@ if [ "${ENABLE_VIBEVOICE:-true}" = "true" ]; then
             hf_snapshot_download "microsoft/VibeVoice-1.5B" "$MODELS_DIR/vibevoice/VibeVoice-1.5B"
             ;;
         "Large")
-            hf_snapshot_download "AIFSH/VibeVoice-Large" "$MODELS_DIR/vibevoice/VibeVoice-Large"
+            hf_snapshot_download "aoi-ot/VibeVoice-Large" "$MODELS_DIR/vibevoice/VibeVoice-Large"
             ;;
         "Large-Q8")
             hf_snapshot_download "FabioSarracino/VibeVoice-Large-Q8" "$MODELS_DIR/vibevoice/VibeVoice-Large-Q8"
             ;;
     esac
+
+    # Download Qwen tokenizer (required for VibeVoice)
+    TOKENIZER_DIR="$MODELS_DIR/vibevoice/tokenizer"
+    if [ ! -f "$TOKENIZER_DIR/tokenizer.json" ]; then
+        echo "[VibeVoice] Downloading Qwen tokenizer..."
+        mkdir -p "$TOKENIZER_DIR"
+        wget -q -O "$TOKENIZER_DIR/tokenizer_config.json" \
+            "https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer_config.json" && \
+        wget -q -O "$TOKENIZER_DIR/vocab.json" \
+            "https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/vocab.json" && \
+        wget -q -O "$TOKENIZER_DIR/merges.txt" \
+            "https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/merges.txt" && \
+        wget -q -O "$TOKENIZER_DIR/tokenizer.json" \
+            "https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer.json" && \
+        echo "  [OK] Qwen tokenizer downloaded" || \
+        echo "  [Error] Failed to download Qwen tokenizer"
+    else
+        echo "  [Skip] Qwen tokenizer already exists"
+    fi
 
     echo "[VibeVoice] Download complete"
 fi
