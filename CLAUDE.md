@@ -49,8 +49,20 @@ open http://localhost:8188
 
 ### VibeVoice-ComfyUI (Recommended)
 **Repo**: https://github.com/Enemyx-net/VibeVoice-ComfyUI (v1.8.1+)
-**Status**: ✅ Working
+**Model**: [aoi-ot/VibeVoice-Large](https://huggingface.co/aoi-ot/VibeVoice-Large) (~18GB)
+**Status**: ⚠️ Needs Qwen tokenizer
 **VRAM**: ~8-12GB (1.5B model), ~16GB+ (7B model)
+
+**Required Tokenizer** (manual download):
+```bash
+# Download Qwen2.5 tokenizer files
+mkdir -p /workspace/ComfyUI/models/vibevoice/tokenizer
+cd /workspace/ComfyUI/models/vibevoice/tokenizer
+wget https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer_config.json
+wget https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/vocab.json
+wget https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/merges.txt
+wget https://huggingface.co/Qwen/Qwen2.5-1.5B/resolve/main/tokenizer.json
+```
 
 Features:
 - Multi-speaker TTS (up to 4 speakers)

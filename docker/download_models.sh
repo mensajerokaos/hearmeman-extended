@@ -1,5 +1,16 @@
 #!/bin/bash
 # Model download script with resume support
+set -o pipefail
+
+# Logging setup
+LOG_FILE="/var/log/download_models.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo ""
+echo "============================================"
+echo "[$(date -Iseconds)] Model download started"
+echo "============================================"
 
 # ============================================
 # Helper Functions
@@ -82,38 +93,56 @@ civitai_download() {
 
 MODELS_DIR="${MODELS_DIR:-/workspace/ComfyUI/models}"
 
+# Python download helper with logging
+hf_snapshot_download() {
+    local REPO="$1"
+    local DEST="$2"
+    local NAME=$(basename "$DEST")
+
+    if [ -d "$DEST" ] && [ "$(ls -A "$DEST" 2>/dev/null)" ]; then
+        echo "  [Skip] $NAME already exists"
+        return 0
+    fi
+
+    echo "  [Download] $NAME from $REPO..."
+    mkdir -p "$DEST"
+
+    python3 -c "
+import sys
+from huggingface_hub import snapshot_download
+try:
+    snapshot_download('$REPO',
+        local_dir='$DEST',
+        local_dir_use_symlinks=False)
+    print('  [OK] $NAME downloaded successfully')
+except Exception as e:
+    print(f'  [Error] Failed to download $NAME: {e}', file=sys.stderr)
+    sys.exit(1)
+" 2>&1
+
+    return $?
+}
+
 # ============================================
 # VibeVoice Models
 # ============================================
 if [ "${ENABLE_VIBEVOICE:-true}" = "true" ]; then
+    echo ""
     echo "[VibeVoice] Downloading model: ${VIBEVOICE_MODEL:-Large}"
 
     case "${VIBEVOICE_MODEL:-Large}" in
         "1.5B")
-            python -c "
-from huggingface_hub import snapshot_download
-snapshot_download('microsoft/VibeVoice-1.5B',
-    local_dir='$MODELS_DIR/vibevoice/VibeVoice-1.5B',
-    local_dir_use_symlinks=False)
-" 2>&1 || echo "  [Note] Will download on first use"
+            hf_snapshot_download "microsoft/VibeVoice-1.5B" "$MODELS_DIR/vibevoice/VibeVoice-1.5B"
             ;;
         "Large")
-            python -c "
-from huggingface_hub import snapshot_download
-snapshot_download('AIFSH/VibeVoice-Large',
-    local_dir='$MODELS_DIR/vibevoice/VibeVoice-Large',
-    local_dir_use_symlinks=False)
-" 2>&1 || echo "  [Note] Will download on first use"
+            hf_snapshot_download "AIFSH/VibeVoice-Large" "$MODELS_DIR/vibevoice/VibeVoice-Large"
             ;;
         "Large-Q8")
-            python -c "
-from huggingface_hub import snapshot_download
-snapshot_download('FabioSarracino/VibeVoice-Large-Q8',
-    local_dir='$MODELS_DIR/vibevoice/VibeVoice-Large-Q8',
-    local_dir_use_symlinks=False)
-" 2>&1 || echo "  [Note] Will download on first use"
+            hf_snapshot_download "FabioSarracino/VibeVoice-Large-Q8" "$MODELS_DIR/vibevoice/VibeVoice-Large-Q8"
             ;;
     esac
+
+    echo "[VibeVoice] Download complete"
 fi
 
 # ============================================
@@ -130,7 +159,9 @@ fi
 # WAN 2.2 Video Generation Models
 # ============================================
 if [ "${WAN_720P:-false}" = "true" ]; then
-    echo "[WAN] Downloading WAN 2.2 720p models..."
+    echo ""
+    echo "[WAN] Downloading WAN 2.1 720p models (~25GB total)..."
+    echo "  Text encoder + CLIP vision + VAE + 14B diffusion model"
     # Text encoders (shared)
     hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
         "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
@@ -603,4 +634,10 @@ snapshot_download('lpiccinelli/unidepth-v2-vitl14',
 fi
 
 echo ""
-echo "[Models] Download complete"
+echo "============================================"
+echo "[$(date -Iseconds)] Model download complete"
+echo "============================================"
+echo ""
+echo "Downloaded models summary:"
+ls -lh "$MODELS_DIR"/*/  2>/dev/null | grep -E "\.safetensors|\.pt|\.ckpt|\.bin" | head -20 || echo "  No models found"
+echo ""

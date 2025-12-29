@@ -1,0 +1,104 @@
+{
+  "_metadata": {
+    "name": "WAN 2.1 14B Text-to-Video (API)",
+    "description": "Working T2V workflow using WanVideoWrapper nodes",
+    "models_required": [
+      {"name": "wan2.1_t2v_14B_fp8_e4m3fn.safetensors", "path": "diffusion_models/"},
+      {"name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "path": "text_encoders/"},
+      {"name": "wan_2.1_vae.safetensors", "path": "vae/"}
+    ],
+    "tested": "2025-12-29",
+    "notes": "Uses CLIPLoader with type=wan, WanVideoTextEmbedBridge, WanVideoVAELoader, WanVideoDecode"
+  },
+  "1": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan"
+    }
+  },
+  "2": {
+    "class_type": "WanVideoModelLoader",
+    "inputs": {
+      "model": "wan2.1_t2v_14B_fp8_e4m3fn.safetensors",
+      "base_precision": "bf16",
+      "quantization": "fp8_e4m3fn",
+      "load_device": "offload_device"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "A cute golden retriever puppy playing in a sunny meadow, happy expression, wagging tail, soft fur, photorealistic, 4k quality",
+      "clip": ["1", 0]
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "blurry, distorted, low quality, static, ugly, deformed",
+      "clip": ["1", 0]
+    }
+  },
+  "5": {
+    "class_type": "WanVideoEmptyEmbeds",
+    "inputs": {
+      "width": 480,
+      "height": 320,
+      "num_frames": 17
+    }
+  },
+  "6": {
+    "class_type": "WanVideoTextEmbedBridge",
+    "inputs": {
+      "positive": ["3", 0],
+      "negative": ["4", 0]
+    }
+  },
+  "7": {
+    "class_type": "WanVideoSampler",
+    "inputs": {
+      "model": ["2", 0],
+      "image_embeds": ["5", 0],
+      "text_embeds": ["6", 0],
+      "steps": 15,
+      "cfg": 6.0,
+      "shift": 5.0,
+      "seed": 42,
+      "force_offload": true,
+      "scheduler": "unipc",
+      "riflex_freq_index": 0
+    }
+  },
+  "8": {
+    "class_type": "WanVideoVAELoader",
+    "inputs": {
+      "model_name": "wan_2.1_vae.safetensors",
+      "precision": "bf16"
+    }
+  },
+  "9": {
+    "class_type": "WanVideoDecode",
+    "inputs": {
+      "vae": ["8", 0],
+      "samples": ["7", 0],
+      "enable_vae_tiling": false,
+      "tile_x": 272,
+      "tile_y": 272,
+      "tile_stride_x": 144,
+      "tile_stride_y": 128
+    }
+  },
+  "10": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["9", 0],
+      "frame_rate": 16,
+      "loop_count": 0,
+      "format": "video/webm",
+      "pingpong": false,
+      "save_output": true,
+      "filename_prefix": "wan21_output"
+    }
+  }
+}

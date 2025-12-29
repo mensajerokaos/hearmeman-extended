@@ -58,7 +58,59 @@ Each session logs:
 **Duration**: 1 hour 45 minutes
 
 **Next Steps**:
-- [ ] Stage 3: WAN 2.2 video test (~25GB model)
+- [x] Stage 3: WAN 2.2 video test (~25GB model)
+- [ ] Stage 4: VibeVoice TTS test
+- [ ] Stage 5: Multi-model workflow test
+
+---
+
+## 2025-12-29 Session 2: WAN Video & VibeVoice Testing
+
+**Start**: 2025-12-29 12:30 CST (CDMX)
+**Author**: oz + Claude Opus 4.5
+
+**Tasks**:
+- [x] Stage 3: WAN 2.1 14B video generation test
+  - CUDA driver issue on RTX 4090 (needed L40S for CUDA 12.8)
+  - Manual model downloads required (diffusion, text encoder, VAE)
+  - Created working `wan21-t2v-14b-api.json` workflow
+  - Generated 17-frame puppy video successfully (219KB WebM)
+- [x] Fix download_models.sh logging (bead runpod-n88)
+  - Added logging to `/var/log/download_models.log`
+  - Created `hf_snapshot_download()` helper with error handling
+  - Added download summary at end of script
+- [!] Stage 4: VibeVoice TTS test (blocked)
+  - Downloaded VibeVoice-Large (~18GB) from aoi-ot/VibeVoice-Large
+  - Disk space issue from partial Q8 download (resolved)
+  - Missing Qwen tokenizer dependency (bead runpod-6s9)
+- [ ] Stage 5: Multi-model workflow test (pending)
+
+**Beads Created**:
+- `runpod-n88`: Fix automatic model downloads (closed)
+- `runpod-6s9`: VibeVoice needs Qwen tokenizer (open)
+
+**Key Learnings**:
+1. RTX 4090 may have older CUDA drivers - L40S safer for CUDA 12.8
+2. VibeVoice model repo changed: use `aoi-ot/VibeVoice-Large`
+3. WAN workflow needs: CLIPLoader (type=wan), WanVideoTextEmbedBridge, WanVideoVAELoader, WanVideoDecode
+4. Use 150GB ephemeral storage for future pods
+
+**Test Results**:
+| Test | Status | Notes |
+|------|--------|-------|
+| WAN 2.1 14B T2V | ✅ Working | 17 frames, 480x320, 15 steps |
+| download_models.sh fix | ✅ Fixed | Better logging, error handling |
+| VibeVoice-Large | ❌ Blocked | Needs Qwen tokenizer download |
+
+**Cost**: ~$0.86/hr (L40S) - ~45 min testing
+
+**Status**: Partial - WAN working, VibeVoice blocked
+
+**End**: 2025-12-29 13:30 CST (CDMX)
+**Duration**: ~1 hour
+
+**Next Steps**:
+- [ ] Fix VibeVoice Qwen tokenizer (bead runpod-6s9)
 - [ ] Stage 4: VibeVoice TTS test
 - [ ] Stage 5: Multi-model workflow test
 
