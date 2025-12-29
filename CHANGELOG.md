@@ -112,7 +112,62 @@ Each session logs:
 **Next Steps**:
 - [x] Fix VibeVoice Qwen tokenizer (bead runpod-6s9)
 - [x] Stage 4: VibeVoice TTS test
-- [ ] Stage 5: Multi-model workflow test
+- [x] Stage 5: Multi-model workflow test
+
+---
+
+## 2025-12-29 Session 4: Full Auto Mode - Extended Testing
+
+**Start**: 2025-12-29 15:57 CST (CDMX)
+**Author**: oz + Claude Opus 4.5
+
+**Tasks**:
+- [x] Stage 5: Multi-model workflow test (WAN + VibeVoice verified)
+- [x] Extended WAN 2.1 testing
+  - 17-frame puppy (480x320, 46.9s) ✅
+  - 33-frame eagle (640x384, ~90s) ✅
+  - 720p cyberpunk (17 frames, VAE tiling) ✅
+  - 25-frame whale (640x384) ✅
+- [x] VibeVoice variations
+  - English longer text (30 steps, sampling=true) ✅
+  - Spanish test ✅
+- [x] R2 sync debugging
+  - Auto-sync daemon NOT working (secrets not expanding)
+  - Manual sync workaround via boto3 ✅
+- [x] Added WAN 2.2 distilled models to download_models.sh
+  - `ENABLE_WAN22_DISTILL=true` for TurboDiffusion I2V
+  - High noise + Low noise expert models (~28GB total)
+
+**Test Results**:
+| Test | Status | Details |
+|------|--------|---------|
+| WAN 2.1 puppy 17f | ✅ | 46.9s, 13.75GB VRAM |
+| WAN 2.1 eagle 33f | ✅ | 640x384, ~90s |
+| WAN 2.1 cyberpunk 720p | ✅ | VAE tiling enabled |
+| WAN 2.1 whale 25f | ✅ | 84.12s |
+| VibeVoice English | ✅ | 20.62s |
+| VibeVoice Spanish | ✅ | Working |
+| TurboDiffusion I2V | ❌ | Needs WAN 2.2 distilled models |
+
+**R2 Outputs Synced**:
+- `outputs/2025-12-29/wan21_eagle_33f_00001.webm` (216 KB)
+- `outputs/2025-12-29/wan21_cyberpunk_720p_00001.webm` (326 KB)
+- `outputs/2025-12-29/wan21_whale_25f_00001.webm` (342 KB)
+- `outputs/2025-12-29/vibevoice_longer_00001_.flac` (258 KB)
+- `outputs/2025-12-29/vibevoice_spanish_00001_.flac` (274 KB)
+
+**Key Findings**:
+1. RunPod Secrets syntax `{{RUNPOD_SECRET_*}}` may not expand in pod creation args
+2. TurboDiffusion I2V requires WAN 2.2 distilled models (high/low noise experts)
+3. VAE tiling works for higher resolutions
+4. Model auto-download via download_models.sh confirmed working
+
+**Pod Info**: `rzb4vbqzuflklo` | L40S GPU | $0.86/hr
+
+**Status**: Completed
+
+**End**: 2025-12-29 16:25 CST (CDMX)
+**Duration**: ~30 minutes
 
 ---
 

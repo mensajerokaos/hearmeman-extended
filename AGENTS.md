@@ -219,14 +219,15 @@ docker compose up -d
 
 ## Key Environment Variables
 
-| Variable | Default | Size |
-|----------|---------|------|
-| `ENABLE_VIBEVOICE` | true | 18GB |
-| `ENABLE_ZIMAGE` | false | 21GB |
-| `ENABLE_ILLUSTRIOUS` | false | 6.5GB |
-| `ENABLE_VACE` | false | 28GB |
-| `ENABLE_CIVITAI` | false | varies |
-| `WAN_720P` | true | 25GB |
+| Variable | Default | Size | Notes |
+|----------|---------|------|-------|
+| `ENABLE_VIBEVOICE` | true | 18GB | VibeVoice-Large TTS |
+| `ENABLE_ZIMAGE` | false | 21GB | Z-Image Turbo txt2img |
+| `ENABLE_ILLUSTRIOUS` | false | 6.5GB | Realism Illustrious |
+| `ENABLE_VACE` | false | 28GB | Video editing |
+| `ENABLE_CIVITAI` | false | varies | CivitAI LoRAs |
+| `WAN_720P` | true | 25GB | WAN 2.1 T2V 14B |
+| `ENABLE_WAN22_DISTILL` | false | 28GB | **WAN 2.2 TurboDiffusion I2V** (4-step, needs input image) |
 
 ---
 

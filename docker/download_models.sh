@@ -232,6 +232,50 @@ if [ "${WAN_480P:-false}" = "true" ]; then
 fi
 
 # ============================================
+# WAN 2.2 Distilled Models (TurboDiffusion I2V)
+# High/Low noise expert models for 4-step inference
+# VRAM: ~24GB | Size: ~28GB total
+# ============================================
+if [ "${ENABLE_WAN22_DISTILL:-false}" = "true" ]; then
+    echo ""
+    echo "[WAN 2.2] Downloading distilled models for TurboDiffusion I2V..."
+    echo "  High + Low noise expert models (~28GB total)"
+
+    # Text encoder (shared - skip if already exists)
+    if [ ! -f "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+    fi
+
+    # VAE (shared - skip if already exists)
+    if [ ! -f "$MODELS_DIR/vae/wan_2.1_vae.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/vae/wan_2.1_vae.safetensors" \
+            "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+    fi
+
+    # WAN 2.2 High Noise Expert (I2V) - ~14GB FP8
+    hf_download "Comfy-Org/Wan_2.2_ComfyUI_Repackaged" \
+        "split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors" \
+        "$MODELS_DIR/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors"
+
+    # WAN 2.2 Low Noise Expert (I2V) - ~14GB FP8
+    hf_download "Comfy-Org/Wan_2.2_ComfyUI_Repackaged" \
+        "split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors" \
+        "$MODELS_DIR/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors"
+
+    # CLIP Vision for I2V (required)
+    if [ ! -f "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/clip_vision/clip_vision_h.safetensors" \
+            "$MODELS_DIR/clip_vision/clip_vision_h.safetensors"
+    fi
+
+    echo "[WAN 2.2] Distilled models download complete"
+fi
+
+# ============================================
 # SteadyDancer
 # ============================================
 if [ "${ENABLE_STEADYDANCER:-false}" = "true" ]; then
