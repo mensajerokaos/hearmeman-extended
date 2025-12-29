@@ -234,15 +234,30 @@ docker compose up -d
 
 RunPod pods have ephemeral storage - all outputs are lost on restart. R2 sync automatically uploads generated files to Cloudflare R2.
 
+### Setup: RunPod Secrets (Recommended)
+
+**Never expose credentials in plain text.** Use [RunPod Secrets](https://docs.runpod.io/pods/templates/secrets) for secure credential storage:
+
+1. **Create secrets in RunPod Console**:
+   - Go to **Settings > Secrets**
+   - Create `r2_access_key` with your R2 Access Key ID
+   - Create `r2_secret_key` with your R2 Secret Access Key
+
+2. **Reference in pod template** using `RUNPOD_SECRET_` prefix:
+   ```
+   R2_ACCESS_KEY_ID={{RUNPOD_SECRET_r2_access_key}}
+   R2_SECRET_ACCESS_KEY={{RUNPOD_SECRET_r2_secret_key}}
+   ```
+
 ### Configuration
 
-| Variable | Value | Required |
-|----------|-------|----------|
-| `ENABLE_R2_SYNC` | `true` | Yes |
-| `R2_ENDPOINT` | `https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorage.com` | Yes |
-| `R2_BUCKET` | `runpod` | Yes |
-| `R2_ACCESS_KEY_ID` | (your key) | Yes (Secret) |
-| `R2_SECRET_ACCESS_KEY` | (your secret) | Yes (Secret) |
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `ENABLE_R2_SYNC` | `true` | Enables auto-upload daemon |
+| `R2_ENDPOINT` | `https://<account>.eu.r2.cloudflarestorage.com` | Your R2 endpoint |
+| `R2_BUCKET` | `runpod` | Target bucket name |
+| `R2_ACCESS_KEY_ID` | `{{RUNPOD_SECRET_r2_access_key}}` | Use RunPod secret |
+| `R2_SECRET_ACCESS_KEY` | `{{RUNPOD_SECRET_r2_secret_key}}` | Use RunPod secret |
 
 ### How It Works
 
