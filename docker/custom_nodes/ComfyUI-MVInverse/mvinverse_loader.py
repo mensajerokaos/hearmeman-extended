@@ -186,54 +186,44 @@ class MVInverseLoader:
         local_path = os.path.join(self.checkpoints_dir, f"{checkpoint_name}.pt")
 
         if os.path.exists(local_path):
-            checkpoint_path = local_path
-            print(f"[MVInverse] Loading from local: {checkpoint_path}")
+            # Load from local checkpoint file
+            print(f"[MVInverse] Loading from local: {local_path}")
+            checkpoint = torch.load(
+                local_path,
+                map_location=device,
+                weights_only=False
+            )
+            model = MVInverse()
         else:
-            # Download from HuggingFace Hub
+            # Use from_pretrained to download from HuggingFace Hub
+            # This uses PyTorchModelHubMixin's built-in download mechanism
+            print(f"[MVInverse] Downloading from HuggingFace Hub (maddog241/mvinverse)...")
             try:
-                from huggingface_hub import hf_hub_download
-            except ImportError:
-                raise ImportError(
-                    "[MVInverse] huggingface_hub not installed. "
-                    "Please run: pip install huggingface_hub"
+                model = MVInverse.from_pretrained("maddog241/mvinverse")
+                print(f"[MVInverse] Downloaded and loaded successfully")
+                checkpoint = None  # Already loaded via from_pretrained
+            except Exception as e:
+                raise RuntimeError(
+                    f"[MVInverse] Failed to download from HuggingFace Hub: {e}. "
+                    "Ensure you have internet access or provide a local checkpoint."
                 )
 
-            print(f"[MVInverse] Downloading from HuggingFace Hub...")
-            checkpoint_path = hf_hub_download(
-                repo_id="maddog241/mvinverse",
-                filename="mvinverse.pt",
-                cache_dir=self.checkpoints_dir,
-                resume_download=True,
-                local_dir=self.checkpoints_dir,
-                local_dir_use_symlinks=False
-            )
-            print(f"[MVInverse] Downloaded to: {checkpoint_path}")
-
-        # Load checkpoint weights
-        print(f"[MVInverse] Loading weights from: {checkpoint_path}")
-        checkpoint = torch.load(
-            checkpoint_path,
-            map_location=device,
-            weights_only=False  # MVInverse checkpoint may contain non-tensor data
-        )
-
-        # Initialize model
-        model = MVInverse()
-
         # Load state dict - handle different checkpoint formats
-        if isinstance(checkpoint, dict):
-            if 'model_state_dict' in checkpoint:
-                model.load_state_dict(checkpoint['model_state_dict'])
-            elif 'state_dict' in checkpoint:
-                model.load_state_dict(checkpoint['state_dict'])
-            elif 'model' in checkpoint:
-                model.load_state_dict(checkpoint['model'])
+        # (Skip if checkpoint is None - already loaded via from_pretrained)
+        if checkpoint is not None:
+            if isinstance(checkpoint, dict):
+                if 'model_state_dict' in checkpoint:
+                    model.load_state_dict(checkpoint['model_state_dict'])
+                elif 'state_dict' in checkpoint:
+                    model.load_state_dict(checkpoint['state_dict'])
+                elif 'model' in checkpoint:
+                    model.load_state_dict(checkpoint['model'])
+                else:
+                    # Assume the dict is the state dict itself
+                    model.load_state_dict(checkpoint)
             else:
-                # Assume the dict is the state dict itself
+                # Direct state dict
                 model.load_state_dict(checkpoint)
-        else:
-            # Direct state dict
-            model.load_state_dict(checkpoint)
 
         # Move to device and set precision
         model = model.to(device=device, dtype=dtype)

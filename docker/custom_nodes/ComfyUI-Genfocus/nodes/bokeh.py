@@ -242,6 +242,12 @@ class GenfocusBokeh:
         # Scale by aperture and intensity
         blur_amount = coc * bokeh_intensity * aperture_size * 50
 
+        # Ensure blur_amount matches image dimensions (depth estimation can produce different sizes)
+        if blur_amount.shape[-2:] != (H, W):
+            blur_amount = torch.nn.functional.interpolate(
+                blur_amount, size=(H, W), mode='bilinear', align_corners=False
+            )
+
         # Create focus mask (1 = in focus, 0 = blurred)
         focus_mask = 1.0 - torch.clamp(blur_amount, 0, 1)
 
