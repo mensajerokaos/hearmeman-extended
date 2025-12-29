@@ -42,17 +42,33 @@ civitai_download() {
     mkdir -p "$TARGET_DIR"
 
     echo "  [Download] $DESCRIPTION (version: $VERSION_ID)"
+
+    # Build URL
+    local URL="https://civitai.com/api/download/models/${VERSION_ID}"
     if [ -n "$CIVITAI_API_KEY" ]; then
-        wget -c -q --show-progress \
-            "https://civitai.com/api/download/models/${VERSION_ID}?token=${CIVITAI_API_KEY}" \
-            --content-disposition \
-            -P "$TARGET_DIR" || echo "  [Error] Failed: $VERSION_ID"
-    else
-        wget -c -q --show-progress \
-            "https://civitai.com/api/download/models/${VERSION_ID}" \
-            --content-disposition \
-            -P "$TARGET_DIR" || echo "  [Error] Failed (may need API key): $VERSION_ID"
+        URL="${URL}?token=${CIVITAI_API_KEY}"
     fi
+
+    # Try wget with explicit redirect handling first
+    if wget --version >/dev/null 2>&1; then
+        wget -c -q --show-progress \
+            --max-redirect=10 \
+            --content-disposition \
+            -P "$TARGET_DIR" \
+            "$URL" 2>/dev/null && return 0
+    fi
+
+    # Fallback to curl if wget fails
+    echo "  [Info] Retrying with curl..."
+    local FILENAME=$(curl -sI -L "$URL" 2>/dev/null | grep -i "content-disposition" | sed -n 's/.*filename="\?\([^"]*\)"\?.*/\1/p' | tr -d '\r')
+    if [ -z "$FILENAME" ]; then
+        FILENAME="model_${VERSION_ID}.safetensors"
+    fi
+
+    curl -L -C - -o "$TARGET_DIR/$FILENAME" "$URL" || {
+        echo "  [Error] Failed: $VERSION_ID"
+        return 1
+    }
 }
 
 MODELS_DIR="${MODELS_DIR:-/workspace/ComfyUI/models}"

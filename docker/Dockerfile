@@ -162,7 +162,9 @@ RUN pip install --no-cache-dir \
     diffusers>=0.21.0 \
     peft>=0.4.0 \
     opencv-python>=4.5.0 \
-    timm
+    timm \
+    # NVIDIA GPU management (for TurboDiffusion)
+    pynvml
 
 # Flash Attention - DISABLED due to ABI compatibility issues with kornia
 # Uncomment only if you need FlashPortrait/InfCam and have matching CUDA/PyTorch
