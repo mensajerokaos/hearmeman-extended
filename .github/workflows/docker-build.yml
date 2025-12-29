@@ -39,13 +39,17 @@ jobs:
       packages: write
 
     steps:
-      - name: Free Disk Space (for large model builds)
-        if: ${{ inputs.bake_wan_720p || inputs.bake_wan_480p || inputs.bake_illustrious }}
+      - name: Free Disk Space
         run: |
+          # Always free disk space - Docker image is ~11GB
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          # Clean Docker cache
+          docker system prune -af --volumes || true
           df -h
 
       - name: Checkout repository
