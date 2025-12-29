@@ -2,13 +2,35 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - 'Dockerfile'
       - 'start.sh'
       - 'download_models.sh'
       - 'requirements.txt'
+      - 'custom_nodes/**'
   workflow_dispatch:
+    inputs:
+      bake_wan_720p:
+        description: 'Bake WAN 2.1 720p models (~25GB)'
+        required: false
+        type: boolean
+        default: false
+      bake_wan_480p:
+        description: 'Bake WAN 2.1 480p models (~12GB)'
+        required: false
+        type: boolean
+        default: false
+      bake_illustrious:
+        description: 'Bake Illustrious XL models (~7GB)'
+        required: false
+        type: boolean
+        default: false
+      image_tag:
+        description: 'Custom image tag (default: latest)'
+        required: false
+        type: string
+        default: 'latest'
 
 env:
   REGISTRY: ghcr.io
@@ -22,6 +44,15 @@ jobs:
       packages: write
 
     steps:
+      - name: Free Disk Space (for large model builds)
+        if: ${{ inputs.bake_wan_720p || inputs.bake_wan_480p || inputs.bake_illustrious }}
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -35,13 +66,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [ "${{ inputs.image_tag }}" != "" ] && [ "${{ inputs.image_tag }}" != "latest" ]; then
+            echo "tag=${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.bake_wan_720p }}" = "true" ]; then
+            echo "tag=wan720p" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.bake_wan_480p }}" = "true" ]; then
+            echo "tag=wan480p" >> $GITHUB_OUTPUT
+          elif [ "${{ inputs.bake_illustrious }}" = "true" ]; then
+            echo "tag=illustrious" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
+            type=raw,value=${{ steps.tag.outputs.tag }}
             type=sha,prefix=
 
       - name: Build and push
@@ -54,3 +100,7 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BAKE_WAN_720P=${{ inputs.bake_wan_720p || 'false' }}
+            BAKE_WAN_480P=${{ inputs.bake_wan_480p || 'false' }}
+            BAKE_ILLUSTRIOUS=${{ inputs.bake_illustrious || 'false' }}

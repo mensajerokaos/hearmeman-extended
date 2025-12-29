@@ -12,16 +12,25 @@ download_model() {
     local NAME=$(basename "$DEST")
 
     if [ -f "$DEST" ]; then
-        echo "  [Skip] $NAME already exists"
-        return 0
+        local SIZE=$(stat -c%s "$DEST" 2>/dev/null || echo "0")
+        if [ "$SIZE" -gt 1000000 ]; then  # >1MB means likely complete
+            echo "  [Skip] $NAME already exists ($(numfmt --to=iec $SIZE 2>/dev/null || echo ${SIZE}B))"
+            return 0
+        fi
+        echo "  [Resume] $NAME incomplete, resuming..."
     fi
 
     echo "  [Download] $NAME"
     mkdir -p "$(dirname "$DEST")"
-    wget -c -q --show-progress -O "$DEST" "$URL" || {
-        echo "  [Error] Failed to download $NAME"
-        rm -f "$DEST"
-        return 1
+
+    # Use wget with progress (not quiet) for large files
+    wget -c --show-progress -O "$DEST" "$URL" 2>&1 | tee -a /var/log/download_models.log || {
+        echo "  [Error] wget failed for $NAME, trying curl..."
+        curl -L -C - -o "$DEST" "$URL" 2>&1 | tee -a /var/log/download_models.log || {
+            echo "  [Error] Failed to download $NAME"
+            rm -f "$DEST"
+            return 1
+        }
     }
 }
 

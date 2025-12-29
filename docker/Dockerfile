@@ -8,6 +8,11 @@ FROM ${BASE_IMAGE}
 ARG COMFYUI_COMMIT=latest
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Build-time model downloads (bakes models into image for instant startup)
+ARG BAKE_WAN_720P=false
+ARG BAKE_WAN_480P=false
+ARG BAKE_ILLUSTRIOUS=false
+
 # Environment
 ENV PYTHONUNBUFFERED=1
 ENV SHELL=/bin/bash
@@ -189,6 +194,55 @@ RUN mkdir -p /var/run/sshd && \
 
 # Create model directories (including new AI models)
 RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision,genfocus,qwen,mvinverse,flashportrait,storymem,infcam}
+
+# ============================================
+# Layer 6: Build-time Model Downloads (Optional)
+# ============================================
+# Re-declare ARGs after FROM (Docker requirement)
+ARG BAKE_WAN_720P
+ARG BAKE_WAN_480P
+ARG BAKE_ILLUSTRIOUS
+
+# WAN 2.1 720p Models (~25GB total: 14B diffusion + text encoders + VAE)
+RUN if [ "$BAKE_WAN_720P" = "true" ]; then \
+    echo "[BUILD] Downloading WAN 2.1 720p models..." && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/clip_vision/clip_vision_h.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors" && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/vae/wan_2.1_vae.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" && \
+    echo "[BUILD] WAN 2.1 720p models downloaded"; \
+    fi
+
+# WAN 2.1 480p Models (~12GB total: 1.3B diffusion + text encoders + VAE)
+RUN if [ "$BAKE_WAN_480P" = "true" ]; then \
+    echo "[BUILD] Downloading WAN 2.1 480p models..." && \
+    [ -f /workspace/ComfyUI/models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors ] || \
+    wget -q --show-progress -O /workspace/ComfyUI/models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" && \
+    [ -f /workspace/ComfyUI/models/vae/wan_2.1_vae.safetensors ] || \
+    wget -q --show-progress -O /workspace/ComfyUI/models/vae/wan_2.1_vae.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors \
+        "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors" && \
+    echo "[BUILD] WAN 2.1 480p models downloaded"; \
+    fi
+
+# Illustrious XL Models (~6.5GB checkpoint + embeddings)
+RUN if [ "$BAKE_ILLUSTRIOUS" = "true" ]; then \
+    echo "[BUILD] Downloading Illustrious XL models..." && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/checkpoints/illustrious_realism_v10.safetensors \
+        "https://civitai.com/api/download/models/2091367" && \
+    mkdir -p /workspace/ComfyUI/models/embeddings && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/embeddings/negativeXL_D.safetensors \
+        "https://civitai.com/api/download/models/134583" && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/embeddings/PDXL.safetensors \
+        "https://civitai.com/api/download/models/367841" && \
+    echo "[BUILD] Illustrious XL models downloaded"; \
+    fi
 
 # Expose ports (22=SSH, 8188=ComfyUI, 8888=Jupyter)
 EXPOSE 22 8188 8888
