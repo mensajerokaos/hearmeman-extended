@@ -1,6 +1,6 @@
 {
-  "last_node_id": 10,
-  "last_link_id": 11,
+  "last_node_id": 7,
+  "last_link_id": 9,
   "nodes": [
     {
       "id": 1,
@@ -19,8 +19,8 @@
     {
       "id": 2,
       "type": "CLIPTextEncode",
-      "pos": [400, 100],
-      "size": [450, 200],
+      "pos": [400, 50],
+      "size": [400, 200],
       "inputs": [
         {"name": "clip", "type": "CLIP", "link": 2}
       ],
@@ -28,13 +28,13 @@
         {"name": "CONDITIONING", "type": "CONDITIONING", "links": [5]}
       ],
       "properties": {},
-      "widgets_values": ["embedding:Stable_Yogis_Illustrious_Positives, \n\n(masterpiece, best quality, extremely detailed:1.2), photorealistic, \n\n1girl, beautiful woman, detailed face, detailed eyes, \n\n(your subject here),\n\nnatural lighting, professional photography, 8k uhd"]
+      "widgets_values": ["(masterpiece, best quality, extremely detailed:1.2), photorealistic, \n\n1girl, solo, beautiful woman, detailed face, detailed eyes, \n\n(your subject description here),\n\nnatural lighting, soft shadows, professional photography, 8k uhd, raw photo"]
     },
     {
       "id": 3,
       "type": "CLIPTextEncode",
-      "pos": [400, 320],
-      "size": [450, 120],
+      "pos": [400, 280],
+      "size": [400, 120],
       "inputs": [
         {"name": "clip", "type": "CLIP", "link": 3}
       ],
@@ -42,12 +42,12 @@
         {"name": "CONDITIONING", "type": "CONDITIONING", "links": [6]}
       ],
       "properties": {},
-      "widgets_values": ["embedding:Stable_Yogis_Illustrious_Negatives, \n\n(worst quality, low quality:1.4), blurry, distorted, deformed, ugly, bad anatomy, bad hands, text, watermark, signature, censored"]
+      "widgets_values": ["(worst quality, low quality:1.4), blurry, distorted, deformed, ugly, bad anatomy, bad hands, extra fingers, missing fingers, fused fingers, too many fingers, text, watermark, signature, logo, censored, mosaic, jpeg artifacts, duplicate, error"]
     },
     {
       "id": 4,
       "type": "EmptyLatentImage",
-      "pos": [400, 470],
+      "pos": [400, 430],
       "size": [315, 106],
       "inputs": [],
       "outputs": [
@@ -59,7 +59,7 @@
     {
       "id": 5,
       "type": "KSampler",
-      "pos": [900, 100],
+      "pos": [850, 100],
       "size": [315, 262],
       "inputs": [
         {"name": "model", "type": "MODEL", "link": 1},
@@ -71,12 +71,12 @@
         {"name": "LATENT", "type": "LATENT", "links": [8]}
       ],
       "properties": {},
-      "widgets_values": [0, "randomize", 28, 7.0, "dpmpp_2m_sde", "karras", 1.0]
+      "widgets_values": [0, "randomize", 30, 7.0, "dpmpp_2m_sde", "karras", 1.0]
     },
     {
       "id": 6,
       "type": "VAEDecode",
-      "pos": [1250, 100],
+      "pos": [1200, 100],
       "size": [210, 46],
       "inputs": [
         {"name": "samples", "type": "LATENT", "link": 8},
@@ -90,14 +90,14 @@
     {
       "id": 7,
       "type": "SaveImage",
-      "pos": [1250, 180],
+      "pos": [1200, 180],
       "size": [315, 270],
       "inputs": [
         {"name": "images", "type": "IMAGE", "link": 9}
       ],
       "outputs": [],
       "properties": {},
-      "widgets_values": ["illustrious-emb"]
+      "widgets_values": ["illustrious"]
     }
   ],
   "links": [
@@ -121,20 +121,18 @@
   },
   "version": 0.4,
   "_metadata": {
-    "name": "Realism Illustrious with Embeddings",
-    "description": "Uses Stable Yogi's official embeddings for optimal quality",
+    "name": "Realism Illustrious Basic",
+    "description": "Basic workflow for Realism Illustrious v5.0 without LoRA requirement",
     "models_required": [
-      {"name": "realismIllustriousBy_v50FP16.safetensors", "path": "checkpoints/"},
-      {"name": "Stable_Yogis_Illustrious_Positives.safetensors", "path": "embeddings/"},
-      {"name": "Stable_Yogis_Illustrious_Negatives.safetensors", "path": "embeddings/"}
+      {"name": "realismIllustriousBy_v50FP16.safetensors", "path": "checkpoints/"}
     ],
     "settings": {
-      "steps": 28,
+      "steps": 30,
       "sampler": "dpmpp_2m_sde",
       "scheduler": "karras",
       "cfg": 7.0,
       "resolution": "832x1216 (portrait)"
     },
-    "notes": "Embeddings auto-loaded via 'embedding:filename' syntax. These are tuned for the Realism Illustrious model."
+    "notes": "Portrait ratio (832x1216) works best for character generation. Add LoRA nodes manually if needed."
   }
 }

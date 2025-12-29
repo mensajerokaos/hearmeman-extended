@@ -139,7 +139,10 @@ RUN pip install --no-cache-dir \
     pandas \
     matplotlib \
     wandb \
-    ffmpeg-python
+    ffmpeg-python \
+    # Dependencies for custom nodes
+    audiotsm \
+    loguru
 
 # Flash Attention (optional - for FlashPortrait/InfCam acceleration)
 RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed - will use standard attention"

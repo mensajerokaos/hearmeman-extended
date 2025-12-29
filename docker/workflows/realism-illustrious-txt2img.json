@@ -14,7 +14,7 @@
         {"name": "VAE", "type": "VAE", "links": [4]}
       ],
       "properties": {},
-      "widgets_values": ["realismIllustriousByStableYogi_v50FP16.safetensors"]
+      "widgets_values": ["realismIllustriousBy_v50FP16.safetensors"]
     },
     {
       "id": 2,

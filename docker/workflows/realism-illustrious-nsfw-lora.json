@@ -14,7 +14,7 @@
         {"name": "VAE", "type": "VAE", "links": [4]}
       ],
       "properties": {},
-      "widgets_values": ["realismIllustriousByStableYogi_v50FP16.safetensors"]
+      "widgets_values": ["realismIllustriousBy_v50FP16.safetensors"]
     },
     {
       "id": 10,
@@ -142,7 +142,7 @@
     "name": "Realism Illustrious NSFW with LoRA",
     "description": "NSFW-capable workflow with LoRA support for Realism Illustrious v5.0",
     "models_required": [
-      {"name": "realismIllustriousByStableYogi_v50FP16.safetensors", "path": "checkpoints/"},
+      {"name": "realismIllustriousBy_v50FP16.safetensors", "path": "checkpoints/"},
       {"name": "LoRA files", "path": "loras/", "note": "Select your downloaded LoRAs"}
     ],
     "settings": {
