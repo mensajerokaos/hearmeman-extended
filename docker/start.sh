@@ -139,6 +139,17 @@ echo "[Models] Starting model downloads..."
 /download_models.sh
 
 # ============================================
+# R2 Sync Daemon Setup
+# ============================================
+if [ "${ENABLE_R2_SYNC:-false}" = "true" ]; then
+    echo "[R2 Sync] Starting background sync daemon..."
+    # Ensure output directory exists before watching
+    mkdir -p /workspace/ComfyUI/output
+    nohup /r2_sync.sh > /var/log/r2_sync_init.log 2>&1 &
+    echo "[R2 Sync] Daemon active, monitoring /workspace/ComfyUI/output"
+fi
+
+# ============================================
 # Start ComfyUI
 # ============================================
 echo "[ComfyUI] Starting on port ${COMFYUI_PORT:-8188}..."

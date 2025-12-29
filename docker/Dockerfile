@@ -35,6 +35,13 @@ ENV ENABLE_INFCAM="false"
 ENV GPU_MEMORY_MODE="auto"
 # Options: auto, full, sequential_cpu_offload, model_cpu_offload
 
+# R2 Configuration
+ENV ENABLE_R2_SYNC="false"
+ENV R2_ENDPOINT="https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorage.com"
+ENV R2_BUCKET="runpod"
+ENV R2_ACCESS_KEY_ID=""
+ENV R2_SECRET_ACCESS_KEY=""
+
 ENV COMFYUI_ARGS=""
 # For: --lowvram, --medvram, --novram, --cpu-vae, etc.
 
@@ -53,6 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     openssh-server \
     aria2 \
+    inotify-tools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -132,6 +140,7 @@ RUN pip install --no-cache-dir \
     huggingface_hub \
     accelerate \
     safetensors \
+    boto3 \
     sentencepiece \
     protobuf \
     # New dependencies for AI models
@@ -164,7 +173,9 @@ RUN pip install --no-cache-dir \
 # ============================================
 COPY start.sh /start.sh
 COPY download_models.sh /download_models.sh
-RUN chmod +x /start.sh /download_models.sh
+COPY upload_to_r2.py /upload_to_r2.py
+COPY r2_sync.sh /r2_sync.sh
+RUN chmod +x /start.sh /download_models.sh /r2_sync.sh
 
 # Copy example workflows
 COPY workflows/ /workspace/ComfyUI/user/default/workflows/

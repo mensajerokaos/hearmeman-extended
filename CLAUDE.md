@@ -229,6 +229,50 @@ docker compose up -d
 
 ---
 
+## R2 Output Sync (RunPod Persistence)
+
+RunPod pods have ephemeral storage - all outputs are lost on restart. R2 sync automatically uploads generated files to Cloudflare R2.
+
+### Configuration
+
+| Variable | Value | Required |
+|----------|-------|----------|
+| `ENABLE_R2_SYNC` | `true` | Yes |
+| `R2_ENDPOINT` | `https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorage.com` | Yes |
+| `R2_BUCKET` | `runpod` | Yes |
+| `R2_ACCESS_KEY_ID` | (your key) | Yes (Secret) |
+| `R2_SECRET_ACCESS_KEY` | (your secret) | Yes (Secret) |
+
+### How It Works
+
+1. `r2_sync.sh` daemon monitors `/workspace/ComfyUI/output`
+2. New files (png, jpg, mp4, wav, etc.) trigger upload
+3. Files organized in R2: `outputs/YYYY-MM-DD/filename`
+4. Logs: `/var/log/r2_sync.log`
+
+### Manual Upload
+
+```bash
+# Upload specific file
+python3 /upload_to_r2.py /workspace/ComfyUI/output/myfile.png
+
+# Test connection
+python3 /upload_to_r2.py --test
+
+# Custom prefix
+python3 /upload_to_r2.py --prefix videos /workspace/ComfyUI/output/video.mp4
+```
+
+### Storage Estimates
+
+| Output Type | Size | 10GB R2 = |
+|------------|------|-----------|
+| Images (768px) | 1-2 MB | ~5,000-10,000 |
+| WAN 720p video | 20-50 MB | ~200-500 |
+| TTS audio | 0.5-2 MB | ~5,000-20,000 |
+
+---
+
 # Project Context - Task Logging & Agent Delegation
 
 ## Task Logging System
