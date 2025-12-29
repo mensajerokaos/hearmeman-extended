@@ -14,6 +14,56 @@ Each session logs:
 
 ---
 
+## 2024-12-29 Session 1: RunPod Deployment Testing
+
+**Start**: 2024-12-29 10:00 CST (CDMX)
+
+**Tasks**:
+- [x] Stage 1: EU vs US datacenter speed testing
+  - EU-CZ: 4+ min startup (slow, avoid)
+  - US: ~1 sec startup (fast, recommended)
+- [x] Stage 2: Illustrious image generation test
+  - Multiple pod attempts (availability issues in specific US datacenters)
+  - Secure Cloud solution: dedicated 25Gbps bandwidth
+  - Model download: 51.2 MB/s (6.5GB in ~2 min)
+  - Image generation: Success (1024x1024 portrait)
+- [x] R2 sync verification
+  - Auto-uploaded to `outputs/2024-12-29/runpod-test_00001_.png`
+  - 1.30 MB image synced successfully
+- [x] Documentation updates
+  - Added RunPod Deployment Requirements to CLAUDE.md
+  - Updated runpod skill with new learnings
+  - Documented port requirements (`--ports "8188/http"`)
+
+**Key Learnings**:
+1. Must use `--ports "8188/http"` for web access
+2. Secure Cloud preferred for consistent network speeds
+3. CivitAI curl fallback works for 307 redirects
+4. Model filenames: `model_<id>.safetensors`
+
+**Test Results**:
+| Test | Status | Notes |
+|------|--------|-------|
+| EU datacenter | ✅ Tested | 4+ min startup - avoid |
+| US Secure Cloud | ✅ Working | 37 sec startup, 51 MB/s |
+| Illustrious model | ✅ Working | 6.5GB download OK |
+| Image generation | ✅ Success | 1024x1024 portrait |
+| R2 sync | ✅ Working | Auto-upload to bucket |
+
+**Cost**: ~$0.08 (8 min at $0.59/hr)
+
+**Status**: Completed
+
+**End**: 2024-12-29 11:45 CST (CDMX)
+**Duration**: 1 hour 45 minutes
+
+**Next Steps**:
+- [ ] Stage 3: WAN 2.2 video test (~25GB model)
+- [ ] Stage 4: VibeVoice TTS test
+- [ ] Stage 5: Multi-model workflow test
+
+---
+
 ## YYYY-MM-DD Session 1
 
 **Start**: YYYY-MM-DD HH:MM:SS CST (CDMX)
