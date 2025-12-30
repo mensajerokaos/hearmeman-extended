@@ -14,6 +14,61 @@ Each session logs:
 
 ---
 
+## 2025-12-29 Session 5: Download Script Audit & Local Testing
+
+**Start**: 2025-12-29 18:00 CST (CDMX)
+**Author**: oz + Claude Opus 4.5
+
+**Context**: After spending budget on RunPod pods where downloads weren't working properly, user requested a full audit and local testing solution.
+
+**Tasks**:
+- [x] Create epic bead for RunPod local testing (runpod-2mp)
+- [x] Audit download_models.sh for silent failures (runpod-9nu)
+  - Found 6 issues: wget pipe masking exit codes, no timeouts, no file sizes, etc.
+- [x] Fix download_models.sh issues (runpod-qfb)
+  - Added `DRY_RUN=true` mode for testing without downloads
+  - Added `DOWNLOAD_TIMEOUT=1800` (30 min default)
+  - Fixed wget exit code handling
+  - Added file sizes to output (e.g., "14GB")
+  - Changed ENABLE_VIBEVOICE default to false
+- [x] Create docker-compose.wan22-test.yml for local testing
+- [x] Test dry-run in Docker - passed
+
+**Issues Found in download_models.sh**:
+| Issue | Severity | Fix |
+|-------|----------|-----|
+| wget pipe to tee masks exit code | 🔴 HIGH | Capture exit code before pipe |
+| No file size shown | 🟡 MEDIUM | Added 4th param to hf_download |
+| VibeVoice defaults ON | 🟡 MEDIUM | Changed to false |
+| No timeout | 🟡 MEDIUM | Added DOWNLOAD_TIMEOUT |
+| No dry-run mode | 🟡 MEDIUM | Added DRY_RUN env var |
+
+**Key Files Changed**:
+- `docker/download_models.sh` - Fixed all issues above
+- `docker/docker-compose.wan22-test.yml` - New local testing config
+
+**Local Testing Usage**:
+```bash
+# Dry-run (no downloads)
+DRY_RUN=true ENABLE_WAN22_DISTILL=true ./docker/download_models.sh
+
+# Docker dry-run
+docker compose -f docker-compose.wan22-test.yml --profile test run --rm wan22-test-dry
+```
+
+**Status**: Completed
+
+**End**: 2025-12-29 18:15 CST (CDMX)
+**Duration**: ~15 minutes
+
+**Next Steps**:
+- [ ] Run real download test locally (28GB WAN 2.2)
+- [ ] Create WAN 2.2 TurboDiffusion workflow
+- [ ] Push new Docker image to GHCR
+- [ ] Test on RunPod with confidence
+
+---
+
 ## 2024-12-29 Session 1: RunPod Deployment Testing
 
 **Start**: 2024-12-29 10:00 CST (CDMX)
