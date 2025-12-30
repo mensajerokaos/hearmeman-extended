@@ -2,14 +2,22 @@
 # Model download script with resume support
 set -o pipefail
 
-# Logging setup
+# ============================================
+# Configuration
+# ============================================
 LOG_FILE="/var/log/download_models.log"
+DRY_RUN="${DRY_RUN:-false}"
+DOWNLOAD_TIMEOUT="${DOWNLOAD_TIMEOUT:-1800}"  # 30 min default
+
+# Logging setup
 mkdir -p "$(dirname "$LOG_FILE")"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo ""
 echo "============================================"
 echo "[$(date -Iseconds)] Model download started"
+echo "  DRY_RUN=$DRY_RUN"
+echo "  TIMEOUT=${DOWNLOAD_TIMEOUT}s"
 echo "============================================"
 
 # ============================================
@@ -20,6 +28,7 @@ echo "============================================"
 download_model() {
     local URL="$1"
     local DEST="$2"
+    local EXPECTED_SIZE="${3:-}"  # Optional expected size for display
     local NAME=$(basename "$DEST")
 
     if [ -f "$DEST" ]; then
@@ -28,21 +37,39 @@ download_model() {
             echo "  [Skip] $NAME already exists ($(numfmt --to=iec $SIZE 2>/dev/null || echo ${SIZE}B))"
             return 0
         fi
-        echo "  [Resume] $NAME incomplete, resuming..."
+        echo "  [Resume] $NAME incomplete ($(numfmt --to=iec $SIZE 2>/dev/null || echo 0B)), resuming..."
     fi
 
-    echo "  [Download] $NAME"
+    # Dry run mode - just show what would be downloaded
+    if [ "$DRY_RUN" = "true" ]; then
+        echo "  [DRY-RUN] Would download: $NAME ${EXPECTED_SIZE:+($EXPECTED_SIZE)}"
+        return 0
+    fi
+
+    echo "  [Download] $NAME ${EXPECTED_SIZE:+($EXPECTED_SIZE)} from ${URL%%\?*}"
     mkdir -p "$(dirname "$DEST")"
 
-    # Use wget with progress (not quiet) for large files
-    wget -c --show-progress -O "$DEST" "$URL" 2>&1 | tee -a /var/log/download_models.log || {
-        echo "  [Error] wget failed for $NAME, trying curl..."
-        curl -L -C - -o "$DEST" "$URL" 2>&1 | tee -a /var/log/download_models.log || {
-            echo "  [Error] Failed to download $NAME"
+    # Use wget with timeout and progress bar directly to stderr
+    local WGET_EXIT=0
+    timeout "$DOWNLOAD_TIMEOUT" wget -c --progress=bar:force:noscroll -O "$DEST" "$URL" 2>&1 || WGET_EXIT=$?
+
+    if [ $WGET_EXIT -ne 0 ]; then
+        echo "  [Warn] wget failed (exit $WGET_EXIT), trying curl..."
+        timeout "$DOWNLOAD_TIMEOUT" curl -L -C - --progress-bar -o "$DEST" "$URL" 2>&1 || {
+            echo "  [ERROR] Failed to download $NAME after wget and curl attempts"
             rm -f "$DEST"
             return 1
         }
-    }
+    fi
+
+    # Verify download
+    if [ -f "$DEST" ]; then
+        local FINAL_SIZE=$(stat -c%s "$DEST" 2>/dev/null || echo "0")
+        echo "  [OK] $NAME downloaded ($(numfmt --to=iec $FINAL_SIZE 2>/dev/null || echo ${FINAL_SIZE}B))"
+    else
+        echo "  [ERROR] $NAME not found after download"
+        return 1
+    fi
 }
 
 # HuggingFace download helper
@@ -50,7 +77,8 @@ hf_download() {
     local REPO="$1"
     local FILE="$2"
     local DEST="$3"
-    download_model "https://huggingface.co/${REPO}/resolve/main/${FILE}" "$DEST"
+    local EXPECTED_SIZE="${4:-}"  # Optional size hint
+    download_model "https://huggingface.co/${REPO}/resolve/main/${FILE}" "$DEST" "$EXPECTED_SIZE"
 }
 
 # CivitAI download helper
@@ -126,7 +154,7 @@ except Exception as e:
 # ============================================
 # VibeVoice Models
 # ============================================
-if [ "${ENABLE_VIBEVOICE:-true}" = "true" ]; then
+if [ "${ENABLE_VIBEVOICE:-false}" = "true" ]; then
     echo ""
     echo "[VibeVoice] Downloading model: ${VIBEVOICE_MODEL:-Large}"
 
@@ -180,32 +208,37 @@ fi
 if [ "${WAN_720P:-false}" = "true" ]; then
     echo ""
     echo "[WAN] Downloading WAN 2.1 720p models (~25GB total)..."
-    echo "  Text encoder + CLIP vision + VAE + 14B diffusion model"
+    echo "  Text encoder (9.5GB) + CLIP vision (1.4GB) + VAE (335MB) + 14B diffusion (14GB)"
     # Text encoders (shared)
     hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
         "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
-        "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+        "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+        "9.5GB"
 
     # CLIP Vision for I2V
     hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
         "split_files/clip_vision/clip_vision_h.safetensors" \
-        "$MODELS_DIR/clip_vision/clip_vision_h.safetensors"
+        "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" \
+        "1.4GB"
 
     # VAE
     hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
         "split_files/vae/wan_2.1_vae.safetensors" \
-        "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+        "$MODELS_DIR/vae/wan_2.1_vae.safetensors" \
+        "335MB"
 
     # 720p diffusion model (T2V)
     hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
         "split_files/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
-        "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors"
+        "$MODELS_DIR/diffusion_models/wan2.1_t2v_14B_fp8_e4m3fn.safetensors" \
+        "14GB"
 
     # 720p I2V model (if I2V enabled)
     if [ "${ENABLE_I2V:-false}" = "true" ]; then
         hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
             "split_files/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" \
-            "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors"
+            "$MODELS_DIR/diffusion_models/wan2.1_i2v_720p_14B_fp8_e4m3fn.safetensors" \
+            "14GB"
     fi
 fi
 
@@ -239,37 +272,48 @@ fi
 if [ "${ENABLE_WAN22_DISTILL:-false}" = "true" ]; then
     echo ""
     echo "[WAN 2.2] Downloading distilled models for TurboDiffusion I2V..."
-    echo "  High + Low noise expert models (~28GB total)"
+    echo "  High noise (14GB) + Low noise (14GB) + shared deps = ~28GB total"
 
     # Text encoder (shared - skip if already exists)
     if [ ! -f "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" ]; then
         hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
             "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
-            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "9.5GB"
+    else
+        echo "  [Skip] Text encoder already exists"
     fi
 
     # VAE (shared - skip if already exists)
     if [ ! -f "$MODELS_DIR/vae/wan_2.1_vae.safetensors" ]; then
         hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
             "split_files/vae/wan_2.1_vae.safetensors" \
-            "$MODELS_DIR/vae/wan_2.1_vae.safetensors"
+            "$MODELS_DIR/vae/wan_2.1_vae.safetensors" \
+            "335MB"
+    else
+        echo "  [Skip] VAE already exists"
     fi
 
     # WAN 2.2 High Noise Expert (I2V) - ~14GB FP8
     hf_download "Comfy-Org/Wan_2.2_ComfyUI_Repackaged" \
         "split_files/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors" \
-        "$MODELS_DIR/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors"
+        "$MODELS_DIR/diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors" \
+        "14GB"
 
     # WAN 2.2 Low Noise Expert (I2V) - ~14GB FP8
     hf_download "Comfy-Org/Wan_2.2_ComfyUI_Repackaged" \
         "split_files/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors" \
-        "$MODELS_DIR/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors"
+        "$MODELS_DIR/diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors" \
+        "14GB"
 
     # CLIP Vision for I2V (required)
     if [ ! -f "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" ]; then
         hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
             "split_files/clip_vision/clip_vision_h.safetensors" \
-            "$MODELS_DIR/clip_vision/clip_vision_h.safetensors"
+            "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" \
+            "1.4GB"
+    else
+        echo "  [Skip] CLIP vision already exists"
     fi
 
     echo "[WAN 2.2] Distilled models download complete"

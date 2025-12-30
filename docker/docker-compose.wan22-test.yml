@@ -1,0 +1,90 @@
+# WAN 2.2 Test Configuration
+# Test downloads locally before deploying to RunPod
+#
+# Usage:
+#   # Dry-run (no downloads, just verify script)
+#   docker compose -f docker-compose.wan22-test.yml run --rm wan22-test-dry
+#
+#   # Real download test (downloads ~28GB)
+#   docker compose -f docker-compose.wan22-test.yml run --rm wan22-test
+#
+#   # Full ComfyUI test with WAN 2.2
+#   docker compose -f docker-compose.wan22-test.yml up comfyui-wan22
+
+services:
+  # Dry-run test - verify script works without downloading
+  wan22-test-dry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hearmeman-extended:local
+    environment:
+      - DRY_RUN=true
+      - ENABLE_WAN22_DISTILL=true
+      - WAN_720P=false
+      - ENABLE_VIBEVOICE=false
+      - ENABLE_CONTROLNET=false
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["/download_models.sh && echo '=== DRY RUN COMPLETE ===' && ls -la /workspace/ComfyUI/models/"]
+    profiles:
+      - test
+
+  # Real download test - downloads WAN 2.2 models
+  wan22-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hearmeman-extended:local
+    environment:
+      - DRY_RUN=false
+      - ENABLE_WAN22_DISTILL=true
+      - WAN_720P=false
+      - ENABLE_VIBEVOICE=false
+      - ENABLE_CONTROLNET=false
+      - DOWNLOAD_TIMEOUT=3600
+    volumes:
+      - ./models:/workspace/ComfyUI/models
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      echo "=== Starting WAN 2.2 Download Test ==="
+      echo "Expected: ~28GB (text encoder + VAE + 2x diffusion models)"
+      echo ""
+      /download_models.sh
+      echo ""
+      echo "=== Download Complete ==="
+      echo "Models in diffusion_models/:"
+      ls -lh /workspace/ComfyUI/models/diffusion_models/
+      echo ""
+      echo "Total size:"
+      du -sh /workspace/ComfyUI/models/
+    profiles:
+      - test
+
+  # Full ComfyUI with WAN 2.2 (for workflow testing)
+  comfyui-wan22:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hearmeman-extended:local
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - ENABLE_WAN22_DISTILL=true
+      - WAN_720P=false
+      - ENABLE_VIBEVOICE=false
+      - ENABLE_CONTROLNET=false
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./models:/workspace/ComfyUI/models
+      - ./output:/workspace/ComfyUI/output
+      - ./workflows:/workspace/ComfyUI/user/default/workflows
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - gpu
