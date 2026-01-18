@@ -14,6 +14,25 @@ Each session logs:
 
 ---
 
+## 2026-01-17 Session 6: Deployment CI/CD Documentation
+
+**Start**: 2026-01-17 23:02:00 CST (CDMX)
+
+**Tasks**:
+- [x] Document deployment CI/CD (section 006)
+  - Output: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/research/section-006-deployment-ci-cd.md`
+  - Log: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/research/section-006-deployment-ci-cd.log`
+- [!] Attempt delegated analysis via `codex exec` (blocked)
+  - Error: MCP startup timeouts + network disconnect to `chatgpt.com/backend-api/codex/responses`
+  - Next step: increase MCP `startup_timeout_sec` and ensure network access, or continue manual analysis (completed)
+
+**Status**: Completed
+
+**End**: 2026-01-17 23:17:11 CST (CDMX)
+**Duration**: ~15 minutes
+
+---
+
 ## 2025-12-29 Session 5: Download Script Audit & Local Testing
 
 **Start**: 2025-12-29 18:00 CST (CDMX)
