@@ -1,0 +1,38 @@
+{
+  "project": "RunPod Custom Templates",
+  "root": "/home/oz/projects/2025/oz/12/runpod",
+  "total_files": 288,
+  "directories": {
+    "docker/": {
+      "files": [
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.illustrious.yml",
+        "docker-compose.nsfw.yml",
+        "docker-compose.turbo.yml",
+        "docker-compose.wan22-test.yml",
+        "start.sh",
+        "download_models.sh",
+        "r2_sync.sh",
+        "upload_to_r2.py",
+        "scripts/",
+        "custom_nodes/",
+        "chatterbox-api/",
+        "workflows/"
+      ]
+    },
+    ".github/workflows/": {
+      "files": ["docker-build.yml"]
+    },
+    "scripts/": "Not present (scripts are in docker/scripts/)"
+  },
+  "key_components": [
+    "Docker infrastructure (Dockerfile, docker-compose, start.sh)",
+    "Model download system (download_models.sh - 751 lines)",
+    "R2 storage sync (r2_sync.sh, upload_to_r2.py)",
+    "TTS systems (VibeVoice, XTTS, Chatterbox)",
+    "Video/Image generation (WAN, VACE, Illustrious, Z-Image)",
+    "GitHub Actions CI/CD"
+  ],
+  "recommended_sections": 6
+}

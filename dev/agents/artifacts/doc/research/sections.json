@@ -1,0 +1,41 @@
+{
+  "sections": [
+    {
+      "id": "001",
+      "name": "docker-infrastructure",
+      "description": "Dockerfile, docker-compose, start.sh, download_models.sh, utility scripts",
+      "priority": 1
+    },
+    {
+      "id": "002",
+      "name": "ai-models",
+      "description": "Environment variables, model configs, VRAM requirements, model selection",
+      "priority": 2
+    },
+    {
+      "id": "003",
+      "name": "tts-voice-systems",
+      "description": "VibeVoice, XTTS, Chatterbox, audio scripts, voice cloning",
+      "priority": 3
+    },
+    {
+      "id": "004",
+      "name": "video-image-generation",
+      "description": "WAN, VACE, Illustrious, ComfyUI nodes, ControlNet",
+      "priority": 4
+    },
+    {
+      "id": "005",
+      "name": "r2-storage-sync",
+      "description": "R2 sync daemon, upload scripts, storage, Cloudflare R2",
+      "priority": 5
+    },
+    {
+      "id": "006",
+      "name": "deployment-ci-cd",
+      "description": "GitHub Actions, RunPod deployment, secrets, configuration",
+      "priority": 6
+    }
+  ],
+  "total_sections": 6
+}
