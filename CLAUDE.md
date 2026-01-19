@@ -350,6 +350,71 @@ python3 /upload_to_r2.py --prefix videos /workspace/ComfyUI/output/video.mp4
 
 ---
 
+## YouTube Download & Transcription
+
+For media analysis pipeline, download YouTube videos and extract transcripts.
+
+### Dependencies
+
+```bash
+pip install --break-system-packages youtube-transcript-api
+pip install yt-dlp  # Already installed
+```
+
+### Download YouTube Video
+
+```bash
+# Download video with subtitles
+yt-dlp -f "bestvideo[height<=1080]+bestaudio" \
+  --write-subs --sub-lang en \
+  -o "%(title)s.%(ext)s" \
+  "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+### Extract Transcript (from YouTube auto-captions)
+
+```python
+from youtube_transcript_api import YouTubeTranscriptApi
+
+# Fetch transcript (video must have auto-captions enabled)
+transcript = YouTubeTranscriptApi().fetch(video_id='VIDEO_ID')
+
+# Convert to list and save as JSON
+transcript_list = list(transcript)
+import json
+
+# JSON format with timestamps
+with open('transcript.json', 'w', encoding='utf-8') as f:
+    json.dump([{
+        'text': entry.text,
+        'start': entry.start,
+        'duration': entry.duration
+    } for entry in transcript_list], f, indent=2)
+
+# Plain text for reading
+with open('transcript.txt', 'w', encoding='utf-8') as f:
+    for entry in transcript_list:
+        f.write(f"{entry.text}\n")
+```
+
+### Example Output Location
+
+```
+M:\solar\aria-cruz-ai\01-reto-freelancer\video\video_analysis\
+  transcripts\
+    AI_Search_Realtime_AI_video.json   # 954 entries
+    AI_Search_Realtime_AI_video.txt    # Plain text
+```
+
+### Notes
+
+- YouTube must have **auto-captions enabled** (most large channels do)
+- `youtube-transcript-api` fetches generated captions, not manual subtitles
+- Some videos have no captions available - use Deepgram/Whisper as fallback
+- Transcripts are essential for AI analysis alongside video frames
+
+---
+
 # Project Context - Task Logging & Agent Delegation
 
 ## Task Logging System
