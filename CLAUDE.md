@@ -173,7 +173,8 @@ curl -X POST http://localhost:8000/v1/audio/speech \
 | **VibeVoice-Large** | ~18GB | TTS voice cloning |
 | **XTTS v2** | ~1.8GB | Multilingual TTS |
 | **Z-Image Turbo** | ~21GB | Fast image gen |
-| **SteadyDancer** | ~33GB | Dance video |
+| **SteadyDancer** | ~14-28GB | Dance video (fp8/fp16 variants) |
+| **TurboDiffusion** | ~14GB | 100-200x acceleration |
 | **SCAIL** | ~28GB | Facial mocap |
 | **ControlNet (5)** | ~3.6GB | Preprocessors |
 | **VACE 14B** | ~28GB | Video editing |
@@ -228,6 +229,9 @@ docker compose up -d
 | `ENABLE_CIVITAI` | false | varies | CivitAI LoRAs |
 | `WAN_720P` | true | 25GB | WAN 2.1 T2V 14B |
 | `ENABLE_WAN22_DISTILL` | false | 28GB | **WAN 2.2 TurboDiffusion I2V** (4-step, needs input image) |
+| `ENABLE_STEADYDANCER` | false | 14-28GB | Dance video generation (I2V) |
+| `STEADYDANCER_VARIANT` | fp8 | - | Model quantization (fp8/fp16/gguf) |
+| `ENABLE_DWPOSE` | false | 2GB | Pose extraction for dance video |
 
 ---
 
