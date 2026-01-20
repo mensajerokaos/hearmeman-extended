@@ -1,36 +1,36 @@
 ## Relations
 @structure/docker/docker_infrastructure_overview.md
-@design/ai_models/gpu_tier_recommendations.md
 
 ## Raw Concept
 **Task:**
-Document Container Startup Process
+Update Startup Process Documentation
 
 **Changes:**
-- Standardizes pod initialization and hardware-aware performance tuning
+- Detailed startup sequence and VRAM detection logic from master-documentation.md
 
 **Files:**
 - docker/start.sh
-- docker/download_models.sh
 
 **Flow:**
-Image Pull -> GPU Detection -> Storage Detection -> SSH/Jupyter -> Model Downloads -> R2 Sync -> ComfyUI Launch
+Entrypoint -> detect storage -> detect GPU -> setup access -> update nodes -> download models -> start services -> launch ComfyUI
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- docker/start.sh: Entrypoint orchestration
-- VRAM Thresholds: <8GB, 8-12GB, 12-16GB, 16-24GB, 24-48GB, 48GB+
+- docker/start.sh: Main entrypoint
+- /var/log/jupyter.log
+- /var/log/r2_sync.log
 
 ### Dependencies
-- `nvidia-smi` for VRAM detection
-- `download_models.sh` for model provisioning
-- `r2_sync.sh` for output persistence
+- STORAGE_MODE (auto, ephemeral, persistent)
+- PUBLIC_KEY (SSH)
+- JUPYTER_PASSWORD (JupyterLab)
+- UPDATE_NODES_ON_START
 
 ### Features
-- Storage mode detection (ephemeral vs persistent)
-- Automatic GPU tier assignment (Consumer, Prosumer, Datacenter)
-- Memory mode and ComfyUI arg optimization based on VRAM
-- Optional SSH and JupyterLab initialization
-- Coordinated startup sequence from image pull to ComfyUI launch
+- Automated storage mode detection
+- GPU VRAM detection and optimization
+- Conditional service starting (SSH, Jupyter, R2 Sync)
+- ComfyUI argument generation based on VRAM
+- Node update logic on startup

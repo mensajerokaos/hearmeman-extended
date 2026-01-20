@@ -1,40 +1,35 @@
 ## Relations
-@structure/docker/docker_infrastructure_overview.md
-@structure/docker/startup_process.md
+@structure/storage/r2_output_persistence.md
 
 ## Raw Concept
 **Task:**
-Document R2 Storage Sync System
+Document R2 Storage Sync for RunPod Custom Template
 
 **Changes:**
-- Implements persistent storage for ephemeral RunPod pods via Cloudflare R2
-- Provides automated output synchronization and manual upload capabilities
+- Updated R2 sync system documentation from master-documentation.md
 
 **Files:**
 - docker/r2_sync.sh
 - docker/upload_to_r2.py
-- docker/start.sh
 
 **Flow:**
-File closed (close_write) -> Match Pattern -> sleep 1s -> python3 upload_to_r2.py -> R2 Bucket
+ComfyUI generates file -> inotify detects change -> upload_to_r2.py called -> File uploaded to R2 bucket
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- docker/r2_sync.sh (Daemon)
-- docker/upload_to_r2.py (Uploader CLI)
-- /var/log/r2_sync.log (Primary Log)
-- /var/log/r2_sync_init.log (Nohup Capture)
+- docker/r2_sync.sh: Sync daemon
+- docker/upload_to_r2.py: Upload logic
+- /workspace/ComfyUI/output: Monitored directory
 
 ### Dependencies
-- inotify-tools (inotifywait)
-- boto3
-- upload_to_r2.py
+- R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+- inotify-tools for file system monitoring
+- boto3 for Python upload script
 
 ### Features
-- Background daemon (r2_sync.sh) watching /workspace/ComfyUI/output
-- Regex-based file filtering (.png, .jpg, .mp4, .webm, .wav, etc.)
-- Concurrent uploads using background subshells
-- Date-based R2 organization: {prefix}/{YYYY-MM-DD}/{filename}
-- Retries with exponential backoff and multipart support for files > 100MB
+- Background daemon (r2_sync.sh) monitors output directory
+- Persistent storage for ephemeral RunPod pods
+- Automatic upload of generated files to Cloudflare R2
+- Verification and testing tools provided

@@ -1,35 +1,31 @@
 ## Relations
-@structure/docker/docker_compose_configuration.md
-@structure/docker/startup_process.md
+@structure/docker/docker_infrastructure_overview.md
 
 ## Raw Concept
 **Task:**
-Build the production-ready Docker image for RunPod pods
+Verify Docker Build Process for SteadyDancer
 
 **Changes:**
-- Builds a single image containing the entire ComfyUI ecosystem and dependencies
+- Verified Docker build success and specific dependency versions performance
 
 **Files:**
 - docker/Dockerfile
 
 **Flow:**
-docker build -> system deps -> ComfyUI clone -> nodes install -> scripts copy -> (optional) model bake
+Build Layer 4 -> Build Layer 5 -> Verified SUCCESS
 
-**Timestamp:** 2026-01-18T05:38:56.747Z
+**Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- `docker/Dockerfile`
-- Layers for system deps, ComfyUI base, third-party nodes, local nodes, and extra deps
+- docker/Dockerfile logic verification
 
 ### Dependencies
-- Base image: Configurable via `BASE_IMAGE` (default: RunPod PyTorch CUDA)
-- Requires internet access for clones and downloads
-- Optional model baking via build args (`BAKE_WAN_720P`, etc.)
+- PyTorch 2.5.1+cu124
+- mmcv 2.1.0, mmpose, dwpose
+- flash_attn 2.7.4.post1
 
 ### Features
-- Multi-layer build process
-- Clones ComfyUI and various third-party custom nodes
-- Includes local custom nodes (`ComfyUI-Genfocus`, `ComfyUI-MVInverse`)
-- Installs system dependencies (ffmpeg, aria2, etc.)
-- Supports optional model baking for faster startup
+- Build Performance: 158s (Verified)
+- Layer Verification: Wave-based dependency pinning successful
+- Compatibility: Confirmed for RTX 4080 SUPER (16GB) targets

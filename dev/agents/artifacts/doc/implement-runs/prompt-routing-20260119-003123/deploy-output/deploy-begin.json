@@ -1,0 +1,6 @@
+{
+  "timestamp": "$(date -Iseconds)",
+  "source": "devmaster:/opt/services/media-analysis/",
+  "status": "DEPLOYMENT_STARTED"
+}
+BACKUP_PATH=/tmp/media-analysis-backup-20260119-105126.tar.gz

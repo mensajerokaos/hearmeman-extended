@@ -1,36 +1,32 @@
 ## Relations
-@structure/docker/startup_process.md
-@design/infrastructure/datacenter_benchmarks.md
+@structure/generation/wan_video_generation.md
 
 ## Raw Concept
 **Task:**
-RunPod Deployment Documentation
+SteadyDancer Deployment Setup
 
 **Changes:**
-- Provides production-ready deployment commands for RunPod pods
-- Establishes secret management patterns for R2 and CivitAI keys
+- Added GGUF VRAM specs and mandatory license acceptance steps to deployment guide
 
 **Files:**
-- docker/docker-compose.yml
-- docker/start.sh
+- structure/deployment/runpod_deployment.md
 
 **Flow:**
-Create secrets in RunPod -> Construct runpodctl command -> Launch pod -> Injected secrets available at runtime
+License -> Token -> ENV -> Pod Start -> GGUF Load
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- runpodctl commands
-- Secret mapping table
-- Port security recommendations
+- RunPod Secret Management: HF_TOKEN
+- Model selection logic in download_models.sh
 
 ### Dependencies
-- runpodctl CLI
-- RunPod Secrets (Encrypted)
+- HF_TOKEN (secret)
+- ENABLE_STEADYDANCER=true
+- STEADYDANCER_VARIANT=gguf (for 16GB cards)
 
 ### Features
-- Standardized pod creation commands for different GPU types (4090, A6000, A100)
-- Secure credential management via `{{RUNPOD_SECRET_*}}`
-- Port configuration for ComfyUI (8188), Jupyter (8888), SSH (22), and XTTS (8000)
-- Support for visible and secret environment variables
+- Mandatory: Accept license at huggingface.co/MCG-NJU/SteadyDancer-14B
+- Low VRAM Support: GGUF variant reduces footprint to 7GB
+- Deployment Checklist: Verify HF_TOKEN and license status before pod start

@@ -56,8 +56,17 @@ download_model() {
     if [ $WGET_EXIT -ne 0 ]; then
         echo "  [Warn] wget failed (exit $WGET_EXIT), trying curl..."
         timeout "$DOWNLOAD_TIMEOUT" curl -L -C - --progress-bar -o "$DEST" "$URL" 2>&1 || {
-            echo "  [ERROR] Failed to download $NAME after wget and curl attempts"
-            rm -f "$DEST"
+            # Check for gated model error
+            if grep -q "401\|Unauthorized\|gated\|authentication" "$DEST" 2>/dev/null; then
+                echo "  [ERROR] $NAME - Model requires authentication!"
+                echo "  [ERROR] This is a gated model on HuggingFace."
+                echo "  [ERROR] Solution: Set HF_TOKEN environment variable or accept license at:"
+                echo "  [ERROR]   https://huggingface.co/${REPO:-the-model-repo}"
+                rm -f "$DEST"
+            else
+                echo "  [ERROR] Failed to download $NAME after wget and curl attempts"
+                rm -f "$DEST"
+            fi
             return 1
         }
     fi
@@ -320,11 +329,118 @@ if [ "${ENABLE_WAN22_DISTILL:-false}" = "true" ]; then
 fi
 
 # ============================================
-# SteadyDancer
+# SteadyDancer (Human Image Animation)
+# VRAM: 14-28GB | Size: 14-28GB
 # ============================================
 if [ "${ENABLE_STEADYDANCER:-false}" = "true" ]; then
-    echo "[SteadyDancer] Downloading model..."
-    hf_download "MCG-NJU/SteadyDancer-14B" "Wan21_SteadyDancer_fp16.safetensors" "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp16.safetensors"
+    echo ""
+    echo "[SteadyDancer] Downloading model (~14-28GB)..."
+
+    STEADYDANCER_VARIANT="${STEADYDANCER_VARIANT:-fp8}"
+
+    case "$STEADYDANCER_VARIANT" in
+        "fp16")
+            echo "  [Info] Downloading fp16 variant (~28GB)..."
+            hf_download "MCG-NJU/SteadyDancer-14B" \
+                "Wan21_SteadyDancer_fp16.safetensors" \
+                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp16.safetensors" \
+                "28GB"
+            ;;
+        "fp8")
+            echo "  [Info] Downloading fp8 variant (~14GB)..."
+            hf_download "kijai/SteadyDancer-14B-pruned" \
+                "Wan21_SteadyDancer_fp8.safetensors" \
+                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp8.safetensors" \
+                "14GB"
+            ;;
+        "gguf")
+            echo "  [Info] Downloading GGUF quantized variant..."
+            mkdir -p "$MODELS_DIR/steadydancer"
+            python3 -c "
+from huggingface_hub import hf_hub_download
+import os
+
+GGUF_FILE='steadydancer-14B-q4_k_m.gguf'
+hf_hub_download(
+    repo_id='MCG-NJU/SteadyDancer-GGUF',
+    filename=GGUF_FILE,
+    local_dir='$MODELS_DIR/steadydancer',
+    local_dir_use_symlinks=False
+)
+print('  [OK] GGUF model downloaded')
+" 2>&1 || echo "  [Error] GGUF download failed"
+            ;;
+    esac
+
+    # Download shared dependencies (WAN 2.1)
+    echo "  [Info] Ensuring shared dependencies..."
+
+    # Text encoder (9.5GB - skip if exists)
+    if [ ! -f "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "$MODELS_DIR/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors" \
+            "9.5GB"
+    fi
+
+    # CLIP Vision (1.4GB - skip if exists)
+    if [ ! -f "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/clip_vision/clip_vision_h.safetensors" \
+            "$MODELS_DIR/clip_vision/clip_vision_h.safetensors" \
+            "1.4GB"
+    fi
+
+    # VAE (335MB - skip if exists)
+    if [ ! -f "$MODELS_DIR/vae/wan_2.1_vae.safetensors" ]; then
+        hf_download "Comfy-Org/Wan_2.1_ComfyUI_repackaged" \
+            "split_files/vae/wan_2.1_vae.safetensors" \
+            "$MODELS_DIR/vae/wan_2.1_vae.safetensors" \
+            "335MB"
+    fi
+
+    echo "[SteadyDancer] Download complete"
+fi
+
+# ============================================
+# DWPose (Pose Estimation for Dance Video)
+# VRAM: ~2GB | Size: ~2GB
+# Required for dance video generation
+# ============================================
+if [ "${ENABLE_DWPOSE:-false}" = "true" ]; then
+    echo ""
+    echo "[DWPose] Downloading pose estimation model (~2GB)..."
+
+    # DWPose weights (yzd-v/DWPose)
+    hf_download "yzd-v/DWPose" \
+        "dwpose_v2.pth" \
+        "$MODELS_DIR/other/dwpose/dwpose_v2.pth" \
+        "2GB"
+
+    # ControlNet pose model
+    hf_download "lllyasviel/ControlNet-v1-1" \
+        "control_v11p_sd15_openpose.pth" \
+        "$MODELS_DIR/controlnet/control_v11p_sd15_openpose.pth" \
+        "1.2GB"
+
+    echo "[DWPose] Download complete"
+fi
+
+# ============================================
+# TurboDiffusion (Distilled Model)
+# VRAM: ~14GB | Size: ~14GB
+# Enables 100-200x speedup
+# ============================================
+if [ "${ENABLE_WAN22_DISTILL:-false}" = "true" ]; then
+    echo ""
+    echo "[TurboDiffusion] Downloading distilled model (~14GB)..."
+
+    hf_download "kijai/wan-2.1-turbodiffusion" \
+        "wan_2.1_turbodiffusion.safetensors" \
+        "$MODELS_DIR/diffusion_models/wan_2.1_turbodiffusion.safetensors" \
+        "14GB"
+
+    echo "[TurboDiffusion] Download complete"
 fi
 
 # ============================================

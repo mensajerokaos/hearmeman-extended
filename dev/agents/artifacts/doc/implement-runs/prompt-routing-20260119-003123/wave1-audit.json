@@ -1,0 +1,14 @@
+{
+  "wave": 1,
+  "status": "completed",
+  "files_created": 4,
+  "directories_created": [
+    "/opt/services/media-analysis/api/prompts",
+    "/opt/services/media-analysis/api/routers",
+    "/opt/services/media-analysis/api/adapters",
+    "/opt/services/media-analysis/tests"
+  ],
+  "audit_passed": true,
+  "verified_at": "2026-01-19T00:31:23Z",
+  "next_wave": 2
+}

@@ -1,34 +1,29 @@
 ## Relations
-@structure/docker/startup_process.md
-@design/ai_models/model_inventory.md
+@tts_systems/overview/tts_systems_overview.md
 
 ## Raw Concept
 **Task:**
-Guide users on model selection based on GPU resources
+SteadyDancer Integration Research
 
 **Changes:**
-- Standardizes performance tuning based on hardware capabilities
+- Updated VRAM savings calculation to 24GB and added multi-GPU instance strategy
 
 **Files:**
 - docker/start.sh
 
 **Flow:**
-Detect VRAM -> Set GPU_TIER -> Set GPU_MEMORY_MODE -> Select models via env vars
+Detect High-VRAM Workflow -> Disable Voice (~24GB saved) -> Launch ComfyUI Instance(s)
 
-**Timestamp:** 2026-01-18T05:38:56.747Z
+**Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- `docker/start.sh` logic for auto-detection
-- Tier-based model selection guide in `section-002-ai-models.md`
+- VRAM optimization strategy table
 
 ### Dependencies
-- Based on NVIDIA GPU VRAM
-- Consumer: 8-24GB (RTX 3080/4070/4080/4090)
-- Prosumer: 24GB+ (A6000, L40S)
-- Datacenter: 48-80GB (A100, H100)
+- Disable voice models for high-VRAM video workflows
 
 ### Features
-- Automated `GPU_TIER` and `GPU_MEMORY_MODE` assignment
-- Optimized `COMFYUI_ARGS` for different VRAM levels
-- Recommended model sets for each tier (e.g., WAN 480p for 8GB, 720p for 16GB+)
+- VibeVoice, XTTS, and Chatterbox disabled to save ~24GB VRAM
+- Critical for A100 80GB workflows (SteadyDancer + TurboDiffusion ~65GB)
+- Multi-GPU: Scale via multiple ComfyUI instances rather than distributed inference

@@ -1,0 +1,11 @@
+{
+  "beads_created": [],
+  "summary": {
+    "total": 0,
+    "high_priority": 0,
+    "medium_priority": 0,
+    "low_priority": 0
+  },
+  "skipped": true,
+  "reason": "PRD is documentation, not code - no implementation beads to create. Beads are created during implementation phase, not during planning."
+}

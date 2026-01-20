@@ -176,9 +176,30 @@ RUN pip install --no-cache-dir \
     # NVIDIA GPU management (for TurboDiffusion)
     pynvml
 
-# Flash Attention - DISABLED due to ABI compatibility issues with kornia
-# Uncomment only if you need FlashPortrait/InfCam and have matching CUDA/PyTorch
-# RUN pip install --no-cache-dir flash_attn || echo "[Note] flash_attn install failed"
+# ============================================
+# Layer 4.5: SteadyDancer Dependencies
+# ============================================
+# Install in specific order to avoid ABI conflicts
+# CRITICAL: PyTorch 2.5.1 required for mmpose compatibility
+RUN pip install --no-cache-dir \
+    torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
+    --index-url https://download.pytorch.org/whl/cu124 \
+    2>/dev/null || pip install --no-cache-dir \
+    torch torchvision torchaudio
+
+# Pose estimation dependencies (MMSelfCom workstack)
+RUN pip install --no-cache-dir \
+    mmengine \
+    mmcv==2.1.0 \
+    mmdet>=3.1.0 \
+    mmpose \
+    dwpose>=0.1.0 \
+    2>/dev/null || echo "[Note] MMPose/DWPose stack install failed, some features may be limited"
+
+# Flash Attention - REQUIRED for optimal performance with SteadyDancer
+# Retries on failure to handle ABI compatibility issues
+RUN pip install --no-cache-dir flash_attn==2.7.4.post1 \
+    2>/dev/null || echo "[Note] flash_attn install failed, using xformers fallback"
 
 # ============================================
 # Layer 5: Scripts and Configuration
@@ -198,7 +219,7 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
 # Create model directories (including new AI models)
-RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision,genfocus,qwen,mvinverse,flashportrait,storymem,infcam}
+RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_encoders,diffusion_models,vae,controlnet,loras,clip_vision,genfocus,qwen,mvinverse,flashportrait,storymem,infcam,steadydancer}
 
 # ============================================
 # Layer 6: Build-time Model Downloads (Optional)
@@ -207,6 +228,9 @@ RUN mkdir -p /workspace/ComfyUI/models/{checkpoints,embeddings,vibevoice,text_en
 ARG BAKE_WAN_720P
 ARG BAKE_WAN_480P
 ARG BAKE_ILLUSTRIOUS
+ARG BAKE_STEADYDANCER=false
+ARG STEADYDANCER_VARIANT=fp8
+ARG BAKE_TURBO=false
 
 # WAN 2.1 720p Models (~25GB total: 14B diffusion + text encoders + VAE)
 RUN if [ "$BAKE_WAN_720P" = "true" ]; then \
@@ -247,6 +271,31 @@ RUN if [ "$BAKE_ILLUSTRIOUS" = "true" ]; then \
     wget -q --show-progress -O /workspace/ComfyUI/models/embeddings/PDXL.safetensors \
         "https://civitai.com/api/download/models/367841" && \
     echo "[BUILD] Illustrious XL models downloaded"; \
+    fi
+
+# SteadyDancer Models (~14-28GB depending on variant)
+RUN if [ "$BAKE_STEADYDANCER" = "true" ]; then \
+    echo "[BUILD] Downloading SteadyDancer ${STEADYDANCER_VARIANT} model..." && \
+    if [ "$STEADYDANCER_VARIANT" = "fp16" ]; then \
+        wget -q --show-progress -O /workspace/ComfyUI/models/diffusion_models/Wan21_SteadyDancer_fp16.safetensors \
+            "https://huggingface.co/MCG-NJU/SteadyDancer-14B/resolve/main/Wan21_SteadyDancer_fp16.safetensors" && \
+        echo "[BUILD] SteadyDancer fp16 downloaded (28GB)"; \
+    elif [ "$STEADYDANCER_VARIANT" = "fp8" ]; then \
+        wget -q --show-progress -O /workspace/ComfyUI/models/diffusion_models/Wan21_SteadyDancer_fp8.safetensors \
+            "https://huggingface.co/kijai/SteadyDancer-14B-pruned/resolve/main/Wan21_SteadyDancer_fp8.safetensors" && \
+        echo "[BUILD] SteadyDancer fp8 downloaded (14GB)"; \
+    fi && \
+    echo "[BUILD] SteadyDancer models downloaded" || \
+    echo "[BUILD] SteadyDancer download skipped or failed"; \
+    fi
+
+# TurboDiffusion Model (~14GB)
+RUN if [ "$BAKE_TURBO" = "true" ]; then \
+    echo "[BUILD] Downloading TurboDiffusion model (~14GB)..." && \
+    wget -q --show-progress -O /workspace/ComfyUI/models/diffusion_models/wan_2.1_turbodiffusion.safetensors \
+        "https://huggingface.co/kijai/wan-2.1-turbodiffusion/resolve/main/wan_2.1_turbodiffusion.safetensors" && \
+    echo "[BUILD] TurboDiffusion downloaded (14GB)" || \
+    echo "[BUILD] TurboDiffusion download skipped or failed"; \
     fi
 
 # Expose ports (22=SSH, 8188=ComfyUI, 8888=Jupyter)

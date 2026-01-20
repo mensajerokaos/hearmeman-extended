@@ -1,96 +1,20 @@
 {
   "session": {
-    "started": "2026-01-17T23:20:00Z",
+    "started": "2026-01-18T00:00:00Z",
     "completed": null,
-    "sections_requested": 6,
-    "sections_completed": 6,
-    "sections_failed": 0,
-    "agent_used": "ma"
+    "sections_requested": 7,
+    "sections_completed": 0,
+    "sections_failed": 0
   },
   "sections": {
-    "001": {
-      "status": "success",
-      "agent_id": "a87cce0",
-      "model": "ma",
-      "title": "docker-infrastructure",
-      "output_file": "./dev/agents/artifacts/doc/research/section-001-docker-infrastructure.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-001-docker-infrastructure.log",
-      "completed_at": "2026-01-17T23:23:00Z",
-      "lines": 4481,
-      "size_bytes": 187369,
-      "errors": []
-    },
-    "002": {
-      "status": "success",
-      "agent_id": "a8095bc",
-      "model": "ma",
-      "title": "ai-models",
-      "output_file": "./dev/agents/artifacts/doc/research/section-002-ai-models.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-002-ai-models.log",
-      "completed_at": "2026-01-17T23:24:00Z",
-      "lines": 587,
-      "size_bytes": 21597,
-      "errors": []
-    },
-    "003": {
-      "status": "success",
-      "agent_id": "a47343c",
-      "model": "ma",
-      "title": "tts-voice-systems",
-      "output_file": "./dev/agents/artifacts/doc/research/section-003-tts-voice-systems.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-003-tts-voice-systems.log",
-      "completed_at": "2026-01-17T23:24:00Z",
-      "lines": 1082,
-      "size_bytes": 34254,
-      "errors": []
-    },
-    "004": {
-      "status": "success",
-      "agent_id": "afc084a",
-      "model": "ma",
-      "title": "video-image-generation",
-      "output_file": "./dev/agents/artifacts/doc/research/section-004-video-image-generation.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-004-video-image-generation.log",
-      "completed_at": "2026-01-17T23:22:00Z",
-      "lines": 584,
-      "size_bytes": 21172,
-      "errors": []
-    },
-    "005": {
-      "status": "success",
-      "agent_id": "a1a32c3",
-      "model": "ma",
-      "title": "r2-storage-sync",
-      "output_file": "./dev/agents/artifacts/doc/research/section-005-r2-storage-sync.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-005-r2-storage-sync.log",
-      "completed_at": "2026-01-17T23:24:00Z",
-      "lines": 756,
-      "size_bytes": 25905,
-      "errors": []
-    },
-    "006": {
-      "status": "success",
-      "agent_id": "a72bb64",
-      "model": "ma",
-      "title": "deployment-ci-cd",
-      "output_file": "./dev/agents/artifacts/doc/research/section-006-deployment-ci-cd.md",
-      "log_file": "./dev/agents/artifacts/doc/research/section-006-deployment-ci-cd.log",
-      "completed_at": "2026-01-17T23:27:00Z",
-      "lines": 756,
-      "size_bytes": 25974,
-      "errors": []
-    }
+    "001": {"status": "pending", "title": "docker-infrastructure", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "002": {"status": "pending", "title": "ai-models", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "003": {"status": "pending", "title": "tts-voice-systems", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "004": {"status": "pending", "title": "video-image-generation", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "005": {"status": "pending", "title": "r2-storage-sync", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "006": {"status": "pending", "title": "deployment-ci-cd", "agent_id": null, "model": null, "output_file": null, "log_file": null},
+    "007": {"status": "pending", "title": "comfyui-workflows", "agent_id": null, "model": null, "output_file": null, "log_file": null}
   },
-  "master_doc": {
-    "status": "completed",
-    "agent": "ma",
-    "output_file": "./dev/agents/artifacts/doc/research/master-documentation.md",
-    "completed_at": "2026-01-17T23:30:00Z"
-  },
-  "brv_sync": {
-    "status": "completed",
-    "sections_curated": 6,
-    "master_curated": true,
-    "completed_at": "2026-01-17T23:35:00Z"
-  }
+  "master_doc": {"status": "pending", "agent": null, "output_file": null},
+  "brv_synced": false
 }

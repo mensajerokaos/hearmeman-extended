@@ -1,0 +1,166 @@
+{
+  "status": "completed",
+  "task": "AUTONOMOUS PRD GENERATION: File Storage Organization System for media-analysis-api",
+  "agent_used": "hc (Claude Sonnet 4.5 fallback)",
+  "reason_for_fallback": "MA agent unresponsive after 24+ minutes, switched to direct generation",
+  "timestamp": "2026-01-20T06:00:00Z",
+  "output_directory": "/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/media-analysis-ma-23-pre",
+  "outputs": {
+    "research": {
+      "file": "research/findings.md",
+      "lines": 937,
+      "size_bytes": 27000,
+      "description": "Comprehensive research on storage patterns, cleanup libraries, scheduler options, and best practices"
+    },
+    "activity": {
+      "file": "activity.md",
+      "lines": 179,
+      "size_bytes": 5600,
+      "description": "Execution log documenting all phases, decisions, and timestamps"
+    },
+    "prd": {
+      "file": "media-analysis-ma-23.md",
+      "lines": 1774,
+      "size_bytes": 60000,
+      "description": "Complete PRD with 5 implementation phases, architecture diagram, configuration schema, and risk assessment"
+    }
+  },
+  "summary": {
+    "total_files": 3,
+    "total_lines": 2890,
+    "implementation_phases": 5,
+    "risk_categories": 5,
+    "code_examples": 15,
+    "research_sections": 8
+  },
+  "implementation_phases": [
+    {
+      "phase": 1,
+      "name": "Storage Directory Setup",
+      "files_created": [
+        "/opt/services/media-analysis/storage/.gitkeep",
+        "/opt/services/media-analysis/storage/README.md",
+        "/opt/services/media-analysis/api/__init__.py"
+      ],
+      "commands": [
+        "mkdir -p /opt/services/media-analysis/storage/{uploads,frames,contact-sheets,outputs,temp}",
+        "touch /opt/services/media-analysis/storage/*/.gitkeep",
+        "chmod 755 /opt/services/media-analysis/storage -R"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Storage Management Module",
+      "files_created": [
+        "/opt/services/media-analysis/api/storage.py"
+      ],
+      "key_classes": [
+        "StorageManager",
+        "StorageConfig",
+        "CleanupResult",
+        "StorageStats"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Configuration Schema",
+      "files_created": [
+        "/opt/services/media-analysis/config/schema.py"
+      ],
+      "config_additions": [
+        "storage.base_path",
+        "storage.retention.*",
+        "storage.quotas.*",
+        "storage.cleanup.*"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Scheduler Integration",
+      "files_created": [
+        "/opt/services/media-analysis/api/scheduler.py",
+        "/opt/services/media-analysis/bin/cleanup.sh"
+      ],
+      "scheduler_type": "APScheduler + Cron fallback",
+      "schedule": "Daily at 02:00 UTC"
+    },
+    {
+      "phase": 5,
+      "name": "Testing & Verification",
+      "files_created": [
+        "/opt/services/media-analysis/tests/test_storage.py",
+        "/opt/services/media-analysis/tests/test_integration.py",
+        "/opt/services/media-analysis/bin/verify-storage.sh"
+      ]
+    }
+  ],
+  "key_features": [
+    "TTL-based file cleanup (24h to indefinite)",
+    "Storage quotas per directory",
+    "Dry run mode for safe testing",
+    "Send to trash instead of permanent deletion",
+    "Batch processing for large directories",
+    "APScheduler with Cron fallback",
+    "Comprehensive error handling",
+    "Storage statistics and monitoring",
+    "Environment variable overrides",
+    "Thread-safe concurrent operation handling"
+  ],
+  "retention_policies": {
+    "temp": "24 hours (86400s)",
+    "uploads": "7 days (604800s)",
+    "frames": "30 days (2592000s)",
+    "contact_sheets": "30 days (2592000s)",
+    "outputs": "Indefinite (-1)"
+  },
+  "storage_quotas": {
+    "temp": "5GB",
+    "uploads": "10GB",
+    "frames": "50GB",
+    "contact_sheets": "20GB",
+    "outputs": "100GB"
+  },
+  "risk_assessment": {
+    "high_priority": [
+      {
+        "risk": "Permission errors",
+        "severity": "8/10",
+        "mitigation": "umask handling, error recovery, send2trash"
+      },
+      {
+        "risk": "Accidental deletion",
+        "severity": "9/10",
+        "mitigation": "dry_run mode, send2trash, backup"
+      },
+      {
+        "risk": "Disk full scenario",
+        "severity": "9/10",
+        "mitigation": "Quota enforcement, priority cleanup, monitoring"
+      }
+    ],
+    "medium_priority": [
+      {
+        "risk": "Scheduler conflicts",
+        "severity": "5/10",
+        "mitigation": "max_instances=1, file locking"
+      },
+      {
+        "risk": "Large file operations",
+        "severity": "5/10",
+        "mitigation": "Batch processing, progress logging"
+      }
+    ]
+  },
+  "verification_status": {
+    "syntax_validation": "python3 -m py_compile",
+    "import_test": "python3 -c 'from api.storage import StorageManager'",
+    "directory_structure": "tree /opt/services/media-analysis/storage",
+    "configuration_validation": "python3 -c 'import yaml; yaml.safe_load(open(...))'"
+  },
+  "rollback_instructions": {
+    "step_1": "Disable cleanup: sed -i 's/enabled: true/enabled: false/' config.yaml",
+    "step_2": "Revert code: git revert HEAD --no-edit",
+    "step_3": "Restore from trash: ~/.local/share/Trash/files/",
+    "step_4": "Restart services: docker compose restart"
+  }
+}

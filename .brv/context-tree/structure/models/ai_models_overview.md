@@ -1,40 +1,36 @@
 ## Relations
-@structure/docker/model_downloader.md
-@design/ai_models/model_inventory.md
+@design/ai_models/gpu_tier_recommendations.md
+@structure/models/generation/video_and_image_generation_models.md
 
 ## Raw Concept
 **Task:**
-Video and Image Generation Documentation
+Document AI Models Configuration for RunPod Custom Template
 
 **Changes:**
-- Adds comprehensive documentation for video and image generation stack
-- Documents VRAM requirements and I/O specs for 10+ new model variants
+- Updated model configuration and VRAM requirements from master-documentation.md
 
 **Files:**
 - docker/download_models.sh
-- docker/workflows/
+- docker/start.sh
 
 **Flow:**
-User selects generation task -> Workflow loads required model components -> Sampler generates latent -> VAE decodes to frames/image -> VHS_VideoCombine encodes to webm/mp4/webp
+Environment Variables -> start.sh (VRAM detection) -> download_models.sh (conditional fetching)
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- models/diffusion_models/: UNet weights
-- models/text_encoders/: Language models
-- models/vae/: Autoencoders
-- models/controlnet/: Conditioning models
-- models/clip_vision/: Vision encoders
+- /workspace/ComfyUI/models: Model storage root
+- Environment variables reference table
+- GPU VRAM requirement matrix
 
 ### Dependencies
-- WAN: UMT5 XXL, WAN VAE, CLIP Vision
-- Z-Image: Qwen 3.4B, Z-Image UNet, AE/VAE
-- Realism Illustrious: SDXL Checkpoint, Embeddings
-- ControlNet: SD1.5 Models (Canny, Depth, OpenPose, etc.)
+- Environment variables for model enabling (ENABLE_VIBEVOICE, WAN_720P, etc.)
+- GPU Tier (consumer, prosumer, datacenter)
+- Memory Mode (auto, sequential_cpu_offload, model_cpu_offload)
 
 ### Features
-- Video Generation: WAN 2.1/2.2 (T2V, I2V, Distilled), VACE (Editing), SteadyDancer (Motion), Fun InP (Interpolation)
-- Image Generation: Z-Image Turbo (Fast), Realism Illustrious (Photorealistic)
-- Spatial Guidance: ControlNet Preprocessors and Models
-- Facial Animation: SCAIL (Mocap/Pose)
+- Support for WAN 2.1/2.2, VibeVoice, Realism Illustrious, Z-Image Turbo
+- Automatic VRAM detection and optimization
+- Model downloading via wget, curl, and huggingface_hub
+- CivitAI API integration

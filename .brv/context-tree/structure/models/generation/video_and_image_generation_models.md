@@ -1,51 +1,38 @@
 ## Relations
-@structure/models/ai_models_overview.md
-@structure/docker/model_downloader.md
+@structure/generation/wan_video_generation.md
+@structure/generation/specialized_generation_models.md
 
 ## Raw Concept
 **Task:**
-Video and Image Generation Documentation
+Document Video and Image Generation for RunPod Custom Template
 
 **Changes:**
-- Documents the complete video and image generation model stack
-- Specifies VRAM requirements and I/O formats for each model type
-- Identifies filename and download mismatches in current workflows
+- Consolidated video and image generation documentation from master-documentation.md
 
 **Files:**
 - docker/download_models.sh
-- docker/workflows/
 - docker/Dockerfile
 
 **Flow:**
-User selects model -> start.sh detects VRAM -> download_models.sh fetches enabled models -> ComfyUI node loads model from /workspace/ComfyUI/models/ -> Workflow executes generation
+Select model via ENV -> download_models.sh fetches weights -> Use in ComfyUI workflows
 
-**Timestamp:** 2026-01-17
+**Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- models/diffusion_models/: UNet weights
-- models/text_encoders/: Language models
-- models/vae/: Variational Autoencoders
-- models/clip_vision/: Vision encoders
-- models/controlnet/: ControlNet weights
-- models/checkpoints/: Base model checkpoints
+- structure/generation/wan_video_generation.md
+- structure/generation/specialized_generation_models.md
+- Environment variables for model selection (WAN_720P, ENABLE_ILLUSTRIOUS, etc.)
 
 ### Dependencies
-- WAN 2.1/2.2: UMT5 text encoder, WAN VAE, CLIP Vision
-- VACE: wan2.1_vace_14B_fp16.safetensors
-- Z-Image Turbo: Qwen text encoder, AE/VAE decoder
-- Realism Illustrious: StableYogi v50 FP16
-- SteadyDancer: mcg-nju/SteadyDancer-14B
-- SCAIL: zai-org/SCAIL-Preview (Git LFS)
-- ControlNet: SD1.5 ControlNet v1.1 FP16 models
-- Fun InP: wan2.2_fun_inp_14B_fp16.safetensors
+- WAN 2.1/2.2, Z-Image Turbo, Realism Illustrious
+- ComfyUI-WanVideoWrapper
+- Comfyui_turbodiffusion
+- ControlNet preprocessors (~3.6GB)
 
 ### Features
-- Text-to-Video (T2V) and Image-to-Video (I2V) via WAN 2.x
-- Fast I2V via TurboDiffusion (distilled expert models)
-- Video editing via VACE (inpainting/outpainting)
-- Photorealistic txt2img via Realism Illustrious (SDXL)
-- Dance/motion video via SteadyDancer
-- Facial mocap/animation via SCAIL
-- Spatial guidance via ControlNet (SD1.5)
-- Frame interpolation via Fun InP (first-last control)
+- WAN 2.1: 720p (~25GB) and 480p (~12GB) T2V
+- WAN 2.2: Distilled I2V (TurboDiffusion, ~28GB)
+- Z-Image Turbo (~21GB)
+- Realism Illustrious (~7GB)
+- VACE video editing and SteadyDancer support

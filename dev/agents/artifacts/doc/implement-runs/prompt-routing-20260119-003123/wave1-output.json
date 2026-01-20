@@ -1,0 +1,24 @@
+=== WAVE 1: SETUP & TEMPLATE SYSTEM ===
+Created directories:
+total 540
+drwxr-xr-x 6 root root   4096 Jan 19 00:31 .
+drwxr-xr-x 9 root root   4096 Jan 19 00:31 ..
+drwxr-xr-x 2 root root   4096 Jan 19 00:31 adapters
+-rw-r--r-- 1 root root   4458 Jan 18 22:47 archive_endpoint.py
+-rw-r--r-- 1 root root   8077 Jan 18 22:47 benchmark_models.py
+-rw-r--r-- 1 root root   2352 Jan 18 22:47 config_loader.py
+-rw-r--r-- 1 root root     90 Jan 18 22:37 __init__.py
+-rw------- 1 root root   1067 Jan 18 23:38 jobs.py
+-rw-r--r-- 1 root root  61344 Jan 18 23:38 kommo_client.py
+-rw-r--r-- 1 root root 358768 Jan 18 23:25 media_analysis_api.py
+-rw-r--r-- 1 root root  33270 Jan 18 22:43 media_analysis.py
+-rw-r--r-- 1 root root  22737 Jan 18 23:38 metrics.py
+-rw-r--r-- 1 root root   1988 Jan 18 22:55 minimax_client.py
+-rw-r--r-- 1 root root   2043 Jan 18 22:56 minimax_integration.py
+drwxr-xr-x 2 root root   4096 Jan 19 00:31 prompts
+drwxr-xr-x 2 root root   4096 Jan 18 23:26 __pycache__
+-rw-r--r-- 1 root root    458 Jan 18 23:32 requirements.txt
+drwxr-xr-x 2 root root   4096 Jan 19 00:31 routers
+-rw------- 1 root root    544 Jan 18 23:38 scoring.py
+
+Directory structure created successfully

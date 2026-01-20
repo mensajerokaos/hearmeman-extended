@@ -35,3 +35,6 @@ Thumbs.db
 
 # Development
 docker/dev/
+
+# bv (beads viewer) local config and caches
+.bv/

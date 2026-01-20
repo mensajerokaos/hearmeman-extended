@@ -1,0 +1,40 @@
+{
+  "prd_path": "/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/prompt-routing-prd.md",
+  "prd_version": "1.1",
+  "expanded_at": "2026-01-19T00:31:23Z",
+  "waves": [
+    {
+      "wave": 1,
+      "title": "Setup & Template System",
+      "description": "Initialize directory structure and create base template system",
+      "phases": ["Phase 1", "Phase 2"],
+      "depends_on": [],
+      "can_run_parallel": true,
+      "status": "completed",
+      "completed_at": "2026-01-19T00:31:23Z"
+    },
+    {
+      "wave": 2,
+      "title": "Router Engine & Adapters",
+      "description": "Implement router engine and LLM adapters",
+      "phases": ["Phase 3", "Phase 4"],
+      "depends_on": [1],
+      "can_run_parallel": true,
+      "status": "completed",
+      "completed_at": "2026-01-19T00:50:00Z"
+    },
+    {
+      "wave": 3,
+      "title": "Testing & Deployment",
+      "description": "Implement tests and deployment configuration",
+      "phases": ["Phase 5"],
+      "depends_on": [2],
+      "can_run_parallel": false,
+      "status": "completed",
+      "completed_at": "2026-01-19T00:55:00Z"
+    }
+  ],
+  "parallel_waves": [1, 2],
+  "critical_path": [1, 2, 3],
+  "target_directory": "devmaster:/opt/services/media-analysis/"
+}

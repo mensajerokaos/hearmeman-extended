@@ -1,37 +1,32 @@
 ## Relations
-@structure/docker/dockerfile.md
-@structure/docker/startup_process.md
+@structure/docker/docker_compose_configuration.md
 
 ## Raw Concept
 **Task:**
-Define local run topology and service configuration
+Document Docker Compose updates for SteadyDancer
 
 **Changes:**
-- Defines the runtime topology for the RunPod custom template
-- Configures port mappings and volume mounts for persistence
+- Updated docker-compose with 14 new environment variables for SteadyDancer control
 
 **Files:**
 - docker/docker-compose.yml
+- CLAUDE.md
 
 **Flow:**
-docker-compose up -> starts hearmeman-extended container -> executes start.sh
+docker-compose up -> start.sh -> ENV detection -> conditional model download -> workflow execution
 
-**Timestamp:** 2026-01-18T05:38:56.747Z
+**Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- `docker/docker-compose.yml`
-- Binds `./models` to `/workspace/ComfyUI/models`
-- Binds `./output` to `/workspace/ComfyUI/output`
+- docker/docker-compose.yml
+- Environment Variables table in CLAUDE.md
 
 ### Dependencies
-- Requires NVIDIA Container Toolkit
-- Depends on `docker/Dockerfile` for build
-- Uses `docker/start.sh` as entrypoint
-- Optional `chatterbox` service requires `chatterbox` profile
+- Added 14 new environment variables for SteadyDancer/Turbo configuration
+- Persistent volume mounts for models and output
 
 ### Features
-- Multi-container setup for ComfyUI and Chatterbox TTS API
-- Persistent volumes for models (`/workspace/ComfyUI/models`) and output (`/workspace/ComfyUI/output`)
-- GPU support via `nvidia` runtime
-- Port mapping for ComfyUI (8188), SSH (2222), JupyterLab (8888), and Chatterbox (8000)
+- Service Toggling: ENABLE_STEADYDANCER, ENABLE_WAN22_DISTILL
+- Model selection: STEADYDANCER_VARIANT (fp16/fp8/gguf)
+- Optimization: VibeVoice/XTTS/Chatterbox disabled to free ~24GB VRAM

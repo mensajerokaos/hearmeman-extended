@@ -1,45 +1,32 @@
 ## Relations
-@structure/models/ai_models_overview.md
 @structure/generation/wan_video_generation.md
 
 ## Raw Concept
 **Task:**
-Document Specialized Generation Models
+SteadyDancer Integration Research
 
 **Changes:**
-- Documents specialized image and video generation models beyond standard WAN T2V/I2V
-- Specifies VRAM requirements and model file names for production workflows
+- Added TurboDiffusion dependency details and speedup benchmarks
 
 **Files:**
-- docker/download_models.sh
-- docker/workflows/z-image-turbo-txt2img.json
-- docker/workflows/realism-illustrious-txt2img.json
+- dev/agents/artifacts/doc/plan/turbodiffusion-requirements.md
 
 **Flow:**
-Model Loader -> Sampler -> VAE Decode -> Output Image/Video
+TurboDiffusion Node -> Accelerated Diffusion (100-200x)
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- models/checkpoints/realismIllustrious*
-- models/diffusion_models/z_image_turbo*
-- models/controlnet/control_v11*
-- models/diffusion_models/wan2.1_vace*
-- models/diffusion_models/Wan21_SteadyDancer*
-- models/diffusion_models/SCAIL-Preview/
-- models/diffusion_models/wan2.2_fun_inp*
+- custom_nodes/Comfyui_turbodiffusion/
+- dev/agents/artifacts/doc/plan/turbodiffusion-requirements.md
 
 ### Dependencies
-- SDXL base (Realism Illustrious)
-- Qwen text encoder (Z-Image Turbo)
-- SD1.5 base (ControlNet v1.1)
+- TurboDiffusion-specific dependencies
+- ComfyUI-WanVideoWrapper (Dec 2025 release)
+- Dec 2025 ComfyUI baseline
 
 ### Features
-- Realism Illustrious: Specialized SDXL for photorealism (8-16GB VRAM)
-- Z-Image Turbo: Fast txt2img using Qwen encoder (16GB+ VRAM)
-- ControlNet (SD1.5): Spatial guidance (canny, depth, openpose, lineart, normalbae)
-- VACE: WAN-family video editing (inpainting/outpainting, 24-28GB VRAM)
-- SteadyDancer: Motion-focused video generation (24-32GB VRAM)
-- SCAIL: Facial animation and mocap workflows
-- Fun InP: First/last frame interpolation for smooth video
+- 100-200x speedup benchmarks for video diffusion
+- Compatibility with WAN 2.1 foundation models
+- Distilled I2V paradigm for high-speed generation

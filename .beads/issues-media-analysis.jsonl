@@ -1,0 +1,103 @@
+{
+  "id": "runpod-ma-epic-01",
+  "title": "EPIC: Add PostgreSQL Database + File System Support to media-analysis-api",
+  "description": "Add persistent storage to track analysis history, store media files, and enable querying of past results. Includes PostgreSQL integration and file system organization.",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "epic",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": [],
+  "epic_children": [
+    "runpod-ma-21",
+    "runpod-ma-22",
+    "runpod-ma-23",
+    "runpod-ma-24",
+    "runpod-ma-25"
+  ]
+}
+{"id": "runpod-ma-21",
+  "title": "Create PostgreSQL Database Schema for media-analysis-api",
+  "description": "Design and create database schema in af-memory database on devmaster. Tables needed:\n- analysis_requests (id, media_url, prompt, status, created_at, completed_at)\n- analysis_results (id, request_id, result_text, model_used, latency_ms)\n- media_files (id, filename, path, size, mime_type, uploaded_at)\n- contact_sheets (id, request_id, path, frames_count)\n\nConnection: af-postgres-1:5432, database=af-memory, user=n8n, password=89wdPtUBK4pn6kDPQcaM\n\nExecute on devmaster:\nssh devmaster 'docker exec af-postgres-1 psql -U n8n -d af-memory -c \"CREATE TABLE IF NOT EXISTS...\"'",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": []
+}
+{"id": "runpod-ma-22",
+  "title": "Create Database Models and Connection Layer",
+  "description": "Create /opt/services/media-analysis/api/models/ directory with:\n- database.py: Connection pool management (asyncpg)\n- analysis_request.py: SQLAlchemy/Pydantic model for analysis_requests\n- media_file.py: Model for media_files table\n- contact_sheet.py: Model for contact_sheets table\n\nUse async patterns matching cotizador-api patterns. Store credentials in config/.env as DATABASE_URL.",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": ["runpod-ma-21"]
+}
+{"id": "runpod-ma-23",
+  "title": "Implement File Storage Organization System",
+  "description": "Create organized file storage at /opt/services/media-analysis/storage/ with subdirectories:\n- uploads/ (original uploaded media)\n- frames/ (extracted video frames)\n- contact-sheets/ (generated contact sheets)\n- outputs/ (final analysis outputs)\n- temp/ (temporary processing files)\n\nImplement cleanup policies:\n- temp/: Auto-delete after 24 hours\n- uploads/: Keep for 7 days\n- contact-sheets/: Keep for 30 days\n- outputs/: Keep indefinitely (with compression)",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": []
+}
+{"id": "runpod-ma-24",
+  "title": "Integrate Database with API Endpoints",
+  "description": "Update all API endpoints to record requests to PostgreSQL:\n- POST /api/media/analyze: Create analysis_request record\n- GET /api/media/status/{id}: Query analysis_request + results\n- DELETE /api/media/{id}: Soft delete (update status='deleted')\n- GET /api/media/history: List all analyses with pagination\n\nAdd response headers: X-Request-ID for tracking",
+  "status": "open",
+  "priority": 2,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": ["runpod-ma-22", "runpod-ma-23"]
+}
+{"id": "runpod-ma-25",
+  "title": "Update Docker Compose with PostgreSQL Network Configuration",
+  "description": "Update docker-compose.yml to:\n- Connect media-analysis-api to af-network (for PostgreSQL access)\n- Add health check for database connectivity\n- Ensure service can reach af-postgres-1 hostname\n\nNetwork config: services/media-analysis-api/networks/default/include: af-network",
+  "status": "open",
+  "priority": 2,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:00:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:00:00.000000000-06:00",
+  "dependencies": ["runpod-ma-22"]
+}
+,
+{"id": "runpod-ma-26",
+  "title": "TEST: Vision/Document Analysis Fallback Chain",
+  "description": "TEST TASK - Execute comprehensive test of Vision/Document Analysis fallback chain:\n\n1. Upload test image to CDN:\nhttps://hdd.automatic.picturelle.com/af/test-cases/vision-test.jpg?token=6e65f4e151b3f3675e05e712f4e7f9c867d48020870f33f61c0ea3bbcdc64cb5\n\n2. Test Qwen3-VL 30B A3B (primary):\ncurl -X POST http://localhost:8050/api/media/documents \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"document_url\": \"<CDN_URL>\", \"prompt\": \"Describe this image in detail\"}'\n\n3. Test Gemini 2.5 Flash fallback (simulate Qwen3 failure):\ncurl -X POST http://localhost:8050/api/media/documents \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"document_url\": \"<CDN_URL>\", \"prompt\": \"Describe this image\", \"model\": \"gemini-2.5-flash\"}'\n\n4. Test GPT-5 Mini fallback (simulate Gemini failure):\ncurl -X POST http://localhost:8050/api/media/documents \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"document_url\": \"<CDN_URL>\", \"prompt\": \"Describe this image\", \"model\": \"gpt-5-mini\"}'\n\n5. Test MiniMax final fallback (text-only, requires image upload):\nUpload image to local storage, then analyze\n\n6. Document results:\n   - Latency per provider\n   - Response quality (1-5 scale)\n   - Cost estimates\n   - Any failures or errors\n\nFALLBACK CHAIN ORDER:\n1. Qwen3-VL 30B A3B (novita → phala → fireworks)\n2. Gemini 2.5 Flash (google-vertex → google-ai-studio)\n3. GPT-5 Mini (openai/gpt-5-mini via OpenRouter)\n4. MiniMax (direct API - text only, no vision MCP yet)\n\nExpected: All 4 providers should work. MiniMax returns text-only response for vision.",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:10:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:10:00.000000000-06:00",
+  "recurrence": "once",
+  "due_date": "2026-01-20T14:00:00.000000000-06:00",
+  "dependencies": []
+}
+,
+{"id": "runpod-ma-27",
+  "title": "RESEARCH: MiniMax Vision MCP Integration",
+  "description": "RESEARCH TASK - Investigate how to connect MiniMax MCP server for vision/image analysis capabilities.\n\nCurrent state: MiniMax has text MCP (web_search, understand_image) configured but not integrated into media-analysis-api fallback chain.\n\nResearch questions:\n1. How to expose MiniMax MCP understand_image to the API?\n2. Can MiniMax vision handle contact sheet images?\n3. What format does MiniMax expect for image input?\n4. Cost comparison: MiniMax vision vs Qwen3-VL vs GPT-5 Mini\n5. Latency benchmarks for MiniMax vision\n\nDeliverables:\n- Document current MiniMax MCP configuration\n- Identify integration points in prompt_router.py\n- Estimate effort (hours) for full integration\n- Create integration plan (PRD-style) if viable\n\nOutput: /home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/research/minimax-vision-mcp-integration.md",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:15:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:15:00.000000000-06:00",
+  "dependencies": []
+}
+,
+{"id": "runpod-ma-28",
+  "title": "Create Caddyfile Configuration for External Access",
+  "description": "Create Caddyfile at /opt/services/media-analysis/Caddyfile for external routing:\n\nmedia-analysis.af.automatic.picturelle.com {\n    reverse_proxy localhost:8050 {\n        header_up Host {host}\n        header_up X-Real-IP {remote}\n    }\n    tls {\n        dns cloudflare <CLOUDFLARE_API_TOKEN>\n    }\n    header {\n        Strict-Transport-Security max-age=31536000\n        X-Content-Type-Options nosniff\n    }\n    rate_limit {\n        zone api_limit 1000 1s\n    }\n}\n\nAlso create local Caddyfile for development:\n\nlocalhost:8051 {\n    reverse_proxy media-analysis-api:8000\n}\n\nCommands:\n# Validate Caddyfile\nssh devmaster 'docker run --rm -v /opt/services/media-analysis/Caddyfile:/etc/caddy/Caddyfile caddy:2.7 validate'\n\n# Deploy to production\nssh devmaster 'cp /opt/services/media-analysis/Caddyfile /opt/clients/af/Caddyfile.d/ && caddy reload --config /opt/clients/af/Caddyfile.d/Caddyfile'",
+  "status": "open",
+  "priority": 1,
+  "issue_type": "task",
+  "created_at": "2026-01-20T08:20:00.000000000-06:00",
+  "updated_at": "2026-01-20T08:20:00.000000000-06:00",
+  "dependencies": []
+}

@@ -1,43 +1,39 @@
 ## Relations
-@structure/models/ai_models_overview.md
-@design/ai_models/gpu_tier_recommendations.md
+@structure/generation/specialized_generation_models.md
+@structure/deployment/runpod_deployment.md
 
 ## Raw Concept
 **Task:**
-Document WAN Video Generation Stack
+SteadyDancer Integration Testing
 
 **Changes:**
-- Documents the WAN video generation stack and its dependencies
-- Provides VRAM guidance and resolution constraints for video models
+- Finalized testing results: ComfyUI 0.6.0 compatibility, prompt framework, and GGUF VRAM requirement (7GB)
 
 **Files:**
+- docker/workflows/steadydancer-turbo.json
 - docker/download_models.sh
-- docker/workflows/wan21-t2v-14b-api.json
-- docker/workflows/wan22-t2v-5b.json
 
 **Flow:**
-Prompt/Image -> WAN Model Loader -> Sampler -> Decode -> VHS_VideoCombine -> Output Video
+Accept License -> Set HF_TOKEN -> Extract Pose -> ReferenceAttention -> TurboDiffusion (4 steps) -> Output
 
 **Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- models/diffusion_models/wan2.1_*
-- models/text_encoders/umt5_*
-- models/vae/wan_*
-- docker/workflows/wan21-t2v-14b-api.json
-- docker/workflows/wan22-t2v-5b.json
+- Wan_ReferenceAttention (Identity preservation)
+- Wan_CrossFrameAttention (Temporal coherence)
+- Wan_KSampler (Core generation)
+- Workflow: steadydancer-turbo.json (4 steps)
 
 ### Dependencies
-- ComfyUI-WanVideoWrapper
-- Comfyui_turbodiffusion (for distilled)
-- umt5_xxl_fp8_e4m3fn_scaled.safetensors (9.5GB)
-- wan_2.1_vae.safetensors (335MB)
-- clip_vision_h.safetensors (1.4GB)
+- ComfyUI 0.6.0
+- Gated Model: MCG-NJU/SteadyDancer-14B (requires license acceptance and HF_TOKEN)
+- TurboDiffusion (Dec 2025) for 4-step generation
+- DWPose for motion extraction
 
 ### Features
-- WAN 2.1 T2V 14B (FP8): High-quality text-to-video (24GB+ VRAM)
-- WAN 2.1 I2V 14B (FP8): Image-to-video conditioning
-- WAN 2.1 T2V 1.3B (FP16): Smaller model for 12-16GB VRAM
-- WAN 2.2 Distilled (TurboDiffusion): 4-step fast I2V generation
-- DIVISIBLE_BY_16: Resolution constraint for most WAN workflows
+- Testing Complete: Verified on RTX 4080 SUPER
+- GGUF variant supported for low VRAM (7GB footprint)
+- 100-200x speedup via TurboDiffusion (4 steps vs 50+)
+- Prompt framework: hair movement, clothing physics, foot grounding
+- Key inference settings: guide_scale=5.0, condition_scale=1.0, end_cfg=0.4

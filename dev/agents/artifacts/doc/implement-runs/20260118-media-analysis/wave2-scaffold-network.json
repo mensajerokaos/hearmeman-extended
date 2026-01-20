@@ -1,0 +1,40 @@
+{
+  "wave": 2,
+  "title": "Scaffold & Network Config",
+  "phases": ["Phase 2: Scaffold New Project Structure", "Phase 4: Network & Configuration"],
+  "can_run_parallel": true,
+  "status": "in_progress",
+  "tasks": [
+    {
+      "task": "Create directory structure",
+      "command": "ssh devmaster 'mkdir -p /opt/services/media-analysis/{api,scripts,config,docker}'",
+      "output_file": "/tmp/wave2-task1-output.txt"
+    },
+    {
+      "task": "Create api/__init__.py",
+      "command": "ssh devmaster 'echo '\"\"\"Media Analysis API - FastAPI service for media processing.\"\"\"' > /opt/services/media-analysis/api/__init__.py && echo '__version__ = \"1.0.0\"' >> /opt/services/media-analysis/api/__init__.py'",
+      "output_file": "/tmp/wave2-task2-output.txt"
+    },
+    {
+      "task": "Create docker-compose.yml with new network",
+      "command": "ssh devmaster 'cat > /opt/services/media-analysis/docker-compose.yml << 'COMPOSE_EOF'\nversion: '3.8'\n\nservices:\n  media-analysis-api:\n    build:\n      context: ./api\n      dockerfile: Dockerfile\n    container_name: media-analysis-api\n    restart: unless-stopped\n    ports:\n      - \"8001:8000\"\n    environment:\n      - MEDIA_ANALYSIS_ENV=production\n      - MEDIA_ANALYSIS_API_KEY=\${MEDIA_ANALYSIS_API_KEY}\n      - DEEPGRAM_API_KEY=\${DEEPGRAM_API_KEY}\n      - GROQ_API_KEY=\${GROQ_API_KEY}\n      - MINIMAX_API_KEY=\${MINIMAX_API_KEY}\n      - OPENAI_API_KEY=\${OPENAI_API_KEY}\n      - GOOGLE_API_KEY=\${GOOGLE_API_KEY}\n    networks:\n      - media-services-network\n    volumes:\n      - ./uploads:/workspace/uploads\n      - ./outputs:/workspace/outputs\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8000/health\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n\nnetworks:\n  media-services-network:\n    driver: bridge\n    ipam:\n      config:\n        - subnet: 172.28.0.0/16\n\nvolumes:\n  uploads:\n  outputs:\nCOMPOSE_EOF'",
+      "output_file": "/tmp/wave2-task3-output.txt"
+    },
+    {
+      "task": "Create Dockerfile",
+      "command": "ssh devmaster 'cat > /opt/services/media-analysis/docker/Dockerfile << 'DOCKER_EOF'\nFROM python:3.11-slim\n\nWORKDIR /app\n\n# Install system dependencies for FFmpeg\nRUN apt-get update && apt-get install -y --no-install-recommends \\\n    ffmpeg \\\n    && rm -rf /var/lib/apt/lists/*\n\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Copy application files\nCOPY . .\n\n# Create directories\nRUN mkdir -p /workspace/uploads /workspace/outputs\n\nEXPOSE 8000\n\nCMD [\"uvicorn\", \"media_analysis_api:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\nDOCKER_EOF'",
+      "output_file": "/tmp/wave2-task4-output.txt"
+    },
+    {
+      "task": "Create .env configuration",
+      "command": "ssh devmaster 'cat > /opt/services/media-analysis/config/.env << 'ENV_EOF'\n# Media Analysis API Configuration\n\n# Application Settings\nMEDIA_ANALYSIS_ENV=development\nMEDIA_ANALYSIS_API_KEY=your-api-key-here\n\n# Transcription Services\nDEEPGRAM_API_KEY=your-deepgram-key\nGROQ_API_KEY=your-groq-key\n\n# Vision & Text (MiniMax + Fallbacks)\nMINIMAX_API_KEY=your-minimax-key\nOPENAI_API_KEY=your-openai-key\nGOOGLE_API_KEY=your-google-key\n\n# Storage\nUPLOAD_DIR=/workspace/uploads\nOUTPUT_DIR=/workspace/outputs\n\n# Video Processing\nVIDEO_FPS=3\nCONTACT_SHEET_COLS=2\nCONTACT_SHEET_ROWS=3\n\n# Logging\nLOG_LEVEL=INFO\nENV_EOF'",
+      "output_file": "/tmp/wave2-task5-output.txt"
+    },
+    {
+      "task": "Create requirements.txt",
+      "command": "ssh devmaster 'cat > /opt/services/media-analysis/config/requirements.txt << 'REQ_EOF'\nfastapi>=0.104.0\nuvicorn[standard]>=0.24.0\npython-dotenv>=1.0.0\nhttpx>=0.25.0\npydantic>=2.5.0\n\n# Media processing\nffmpeg-python>=0.2.0\nPillow>=10.0.0\n\n# Transcription\ndeepgram-sdk>=3.0.0\ngroq>=0.4.0\nopenai>=1.0.0\ngoogle-generativeai>=0.3.0\n\n# MiniMax API (OpenAI compatible)\nopenai>=1.0.0\nREQ_EOF'",
+      "output_file": "/tmp/wave2-task6-output.txt"
+    }
+  ],
+  "parallel": true
+}

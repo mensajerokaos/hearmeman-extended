@@ -65,6 +65,28 @@ services:
       - ENABLE_STORYMEM=false
       # Tier 3: Datacenter GPU (48-80GB A100/H100)
       - ENABLE_INFCAM=false
+
+      # SteadyDancer (Dance Video Generation)
+      - ENABLE_STEADYDANCER=false
+      - STEADYDANCER_VARIANT=fp8
+      - STEADYDANCER_GUIDE_SCALE=5.0
+      - STEADYDANCER_CONDITION_GUIDE=1.0
+      - STEADYDANCER_END_CFG=0.4
+      - STEADYDANCER_SEED=106060
+
+      # DWPose (Pose Extraction for Dance Video)
+      - ENABLE_DWPOSE=false
+      - DWPOSE_DETECT_HAND=true
+      - DWPOSE_DETECT_BODY=true
+      - DWPOSE_DETECT_FACE=true
+      - DWPOSE_RESOLUTION=512
+
+      # TurboDiffusion (100-200x acceleration for video generation)
+      - ENABLE_WAN22_DISTILL=false
+      - TURBO_STEPS=4
+      - TURBO_GUIDE_SCALE=5.0
+      - TURBO_CONDITION_GUIDE=1.0
+      - TURBO_END_CFG=0.4
     ports:
       - "8188:8188"
       - "8888:8888"

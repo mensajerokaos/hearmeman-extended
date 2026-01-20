@@ -1,0 +1,185 @@
+{
+  "name": "SteadyDancer Dance Animation + TurboDiffusion",
+  "description": "High-speed dance video generation using SteadyDancer with TurboDiffusion acceleration (100-200x speedup). Requires ENABLE_WAN22_DISTILL=true. Optimal for A100 80GB.",
+  "nodes": [
+    {
+      "id": "1",
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "reference_character.png",
+        "choose_file_to_upload": "reference_character.png"
+      }
+    },
+    {
+      "id": "2",
+      "class_type": "LoadVideo",
+      "inputs": {
+        "video": "driving_dance.mp4",
+        "frame_count": 16,
+        "fps": 25,
+        "force_rate": 25,
+        "skip_first_frames": 0
+      }
+    },
+    {
+      "id": "3",
+      "class_type": "DWPreprocessor",
+      "inputs": {
+        "image": "2",
+        "detect_hand": true,
+        "detect_body": true,
+        "detect_face": true,
+        "resolution": 512,
+        "pose_threshold": 0.05
+      },
+      "name": "DWPose Extraction"
+    },
+    {
+      "id": "4",
+      "class_type": "Wan_LoadDiffusionModel",
+      "inputs": {
+        "model_name": "Wan21_SteadyDancer_fp8.safetensors",
+        "weight_dtype": "fp8"
+      },
+      "name": "Load SteadyDancer Model"
+    },
+    {
+      "id": "5",
+      "class_type": "Wan_LoadVAE",
+      "inputs": {
+        "vae_name": "wan_2.1_vae.safetensors"
+      },
+      "name": "Load VAE"
+    },
+    {
+      "id": "6",
+      "class_type": "Wan_LoadTurbo",
+      "inputs": {
+        "model_name": "wan_2.1_turbodiffusion.safetensors",
+        "steps": 4,
+        "guide_scale": 5.0,
+        "condition_guide_scale": 1.0,
+        "end_cond_cfg": 0.4
+      },
+      "name": "Load TurboDiffusion"
+    },
+    {
+      "id": "7",
+      "class_type": "Wan_ReferenceAttention",
+      "inputs": {
+        "reference_image": "1",
+        "conditioning_strength": 0.8,
+        "reference_type": "image",
+        "scale": 1.0,
+        "do_classifier_free_guidance": false
+      },
+      "name": "Reference Attention (Identity)"
+    },
+    {
+      "id": "8",
+      "class_type": "Wan_CrossFrameAttention",
+      "inputs": {
+        "driving_video": "2",
+        "frame_count": 16,
+        "motion_strength": 1.0
+      },
+      "name": "Cross-Frame Attention (Motion)"
+    },
+    {
+      "id": "9",
+      "class_type": "Wan_KSampler",
+      "inputs": {
+        "model": "4",
+        "vae": "5",
+        "positive": ["7", 0],
+        "negative": [["CLIPTextEncode", 0], 0],
+        "latent_image": [["EmptyLatentImage", 0], 0],
+        "seed": 106060,
+        "steps": 4,
+        "cfg": 5.0,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1.0
+      },
+      "name": "KSampler (Turbo - 4 steps)"
+    },
+    {
+      "id": "10",
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": ["9", 0],
+        "vae": "5"
+      }
+    },
+    {
+      "id": "11",
+      "class_type": "SaveVideo",
+      "inputs": {
+        "images": "10",
+        "filename_prefix": "steadydancer_dance_turbo",
+        "fps": 25,
+        "format": "mp4h264",
+        "pix_fmt": "yuv420p",
+        "crf": 23,
+        "audio_path": "",
+        "output_format": "mp4"
+      },
+      "name": "Save Video (Turbo)"
+    },
+    {
+      "id": "12",
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "text": "A person dancing with smooth, natural movements, high quality, detailed",
+        "clip": [["Wan_LoadDiffusionModel", 4], 2]
+      },
+      "name": "Positive Prompt"
+    },
+    {
+      "id": "13",
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "text": "blurry, distorted, low quality, artifacts, jittery motion",
+        "clip": [["Wan_LoadDiffusionModel", 4], 2]
+      },
+      "name": "Negative Prompt"
+    },
+    {
+      "id": "14",
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": 512,
+        "height": 512,
+        "batch_size": 1
+      },
+      "name": "Latent Image (512x512)"
+    }
+  ],
+  "links": [
+    ["1", "7", "reference_image"],
+    ["2", "3", "image"],
+    ["2", "8", "driving_video"],
+    ["3", "8", "conditioning"],
+    ["4", "9", "model"],
+    ["5", "9", "vae"],
+    ["5", "10", "vae"],
+    ["6", "9", "turbo"],
+    ["7", "9", "positive"],
+    ["8", "9", "conditioning"],
+    ["9", "10", "samples"],
+    ["10", "11", "images"],
+    ["12", "9", "positive"],
+    ["13", "9", "negative"],
+    ["14", "9", "latent_image"]
+  ],
+  "groups": [],
+  "config": {
+    "extra": {},
+    "DL_type": "StableDiffusion",
+    "StableDiffusion": {
+      "model": "Wan2.1-I2V",
+      "version": "2.1"
+    }
+  },
+  "workflow_version": "1.0"
+}

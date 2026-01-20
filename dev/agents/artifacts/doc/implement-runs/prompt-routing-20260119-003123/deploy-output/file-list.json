@@ -1,0 +1,20 @@
+{
+  "files_to_deploy": [
+    "api/prompt_router.py",
+    "api/routers/prompt_router_routes.py",
+    "api/prompt_templates.py",
+    "api/adapters/minimax.py",
+    "api/adapters/deepgram.py",
+    "api/adapters/groq.py",
+    "api/adapters/openai.py",
+    "api/adapters/claude.py",
+    "api/__init__.py",
+    "api/adapters/__init__.py",
+    "api/routers/__init__.py",
+    "tests/test_prompt_router.py",
+    "tests/test_adapters.py",
+    "scripts/run_tests.sh",
+    "scripts/deploy.sh",
+    "scripts/health_check.sh"
+  ]
+}

@@ -1,42 +1,41 @@
+## Relations
+@structure/docker/docker_compose_configuration.md
+@structure/docker/startup_process.md
+@structure/docker/model_downloader.md
+
 ## Raw Concept
 **Task:**
-Docker Infrastructure Documentation
+Document Docker Infrastructure for RunPod Custom Template
 
 **Changes:**
-- Introduces production-ready Docker infrastructure for RunPod pods
-- Implements automated environment detection for VRAM and storage
-- Adds background sync to Cloudflare R2
+- Consolidated Docker infrastructure documentation from master-documentation.md
 
 **Files:**
 - docker/Dockerfile
 - docker/docker-compose.yml
 - docker/start.sh
 - docker/download_models.sh
-- docker/r2_sync.sh
-- docker/upload_to_r2.py
 
 **Flow:**
-Dockerfile builds image -> start.sh detects GPU/Storage -> download_models.sh fetches assets -> R2 sync starts -> ComfyUI launches
+Build image -> docker-compose up -> start.sh (detect GPU/storage) -> download_models.sh -> r2_sync.sh (optional) -> ComfyUI start
 
-**Timestamp:** 2026-01-17
+**Timestamp:** 2026-01-18
 
 ## Narrative
 ### Structure
-- docker/Dockerfile: Build configuration
-- docker/docker-compose.yml: Service orchestration
-- docker/start.sh: Container entrypoint script
-- docker/download_models.sh: Model downloader
-- docker/r2_sync.sh: R2 sync daemon
-- docker/custom_nodes/: Local custom nodes directory
+- docker/Dockerfile: Build layers and architecture
+- docker/docker-compose.yml: Service definitions (ComfyUI, Chatterbox)
+- docker/start.sh: Entrypoint logic
+- docker/download_models.sh: Model fetching logic
 
 ### Dependencies
-- Requires NVIDIA Container Toolkit
-- Depends on RunPod PyTorch base image
-- Local custom nodes: ComfyUI-Genfocus, ComfyUI-MVInverse
+- Base image: RunPod PyTorch CUDA
+- Systems deps: git, ffmpeg, OpenGL, SSH, aria2
+- ComfyUI + Custom Nodes
+- Startup scripts: start.sh, download_models.sh, r2_sync.sh
 
 ### Features
-- Multi-layer build for ComfyUI and custom nodes
-- GPU tier and storage mode auto-detection
-- Automated model downloading at startup
-- R2 output synchronization daemon
-- Integrated SSH and JupyterLab access
+- Production-ready Docker container for AI generation
+- Integrated ComfyUI with custom nodes
+- Ephemeral environment support with startup model downloads
+- Cloudflare R2 sync for persistence
