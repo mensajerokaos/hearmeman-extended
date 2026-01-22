@@ -13,6 +13,7 @@ from api.repositories.job import JobRepository
 from api.repositories.media import MediaRepository
 from api.repositories.result import ResultRepository
 from api.repositories.transcription import TranscriptionRepository
+from api.repositories.processing_log import ProcessingLogRepository
 
 
 # Type variable for models
@@ -101,6 +102,7 @@ RepositoryFactory.register("job")(JobRepository)
 RepositoryFactory.register("media")(MediaRepository)
 RepositoryFactory.register("result")(ResultRepository)
 RepositoryFactory.register("transcription")(TranscriptionRepository)
+RepositoryFactory.register("processing_log")(ProcessingLogRepository)
 
 
 __all__ = [
@@ -109,6 +111,7 @@ __all__ = [
     "MediaRepository",
     "ResultRepository",
     "TranscriptionRepository",
+    "ProcessingLogRepository",
     "RepositoryFactory",
     "get_repository",
 ]

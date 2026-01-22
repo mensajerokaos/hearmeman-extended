@@ -7,7 +7,7 @@ Provides common CRUD operations with type safety and async context manager suppo
 
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Generic, TypeVar, AsyncGenerator, Type, Optional, list, Dict, Any
+from typing import Generic, TypeVar, AsyncGenerator, Type, Optional, List, Dict, Any
 
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,7 +117,7 @@ class BaseRepository(Generic[T]):
         limit: int = 100,
         order_by: Optional[str] = None,
         descending: bool = True
-    ) -> list[T]:
+    ) -> List[T]:
         """
         Retrieve all non-deleted records with pagination.
 
@@ -156,7 +156,7 @@ class BaseRepository(Generic[T]):
         limit: int = 100,
         order_by: Optional[str] = None,
         descending: bool = True
-    ) -> list[T]:
+    ) -> List[T]:
         """
         List records with optional filtering and pagination.
 
@@ -393,7 +393,7 @@ class BaseRepository(Generic[T]):
             await self._session.rollback()
             raise
 
-    async def execute(self, stmt: Select) -> list[T]:
+    async def execute(self, stmt: Select) -> List[T]:
         """
         Execute a custom SELECT statement.
 

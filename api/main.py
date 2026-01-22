@@ -18,7 +18,6 @@ from api.models.database import (
     create_async_engine_configured,
     get_engine,
     close_engine,
-    get_sessionmaker,
     init_session_factory,
     verify_database_connection,
 )
@@ -27,9 +26,11 @@ from api.models.job import AnalysisJob
 from api.models.media import MediaFile
 from api.models.result import AnalysisResult
 from api.models.transcription import Transcription
-from api.models.dependencies import get_db, JobRepositoryDependency
+from api.models.dependencies import get_session
 from api.repositories.job import JobRepository
+from api.repositories.result import ResultRepository
 from api.schemas.job import JobCreate, JobResponse, JobListResponse, JobUpdate
+from api.schemas.result import AnalysisResultCreate, AnalysisResultResponse, AnalysisResultListResponse
 
 
 # Configure logging
@@ -189,13 +190,20 @@ async def detailed_health_check() -> dict:
 # Job API Endpoints
 # =============================================================================
 
+async def get_job_repository(
+    session: AsyncSession = Depends(get_session)
+) -> JobRepository:
+    """Dependency to provide JobRepository instance."""
+    return JobRepository(session)
+
+
 @app.get("/api/v1/jobs", response_model=JobListResponse, tags=["Jobs"])
 async def list_jobs(
     *,
     page: int = 1,
     page_size: int = 20,
     status: str = None,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobListResponse:
     """
     List all jobs with pagination.
@@ -234,7 +242,7 @@ async def list_jobs(
 @app.get("/api/v1/jobs/{job_id}", response_model=JobResponse, tags=["Jobs"])
 async def get_job(
     job_id: str,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Get a job by ID.
@@ -257,7 +265,7 @@ async def get_job(
 @app.post("/api/v1/jobs", response_model=JobResponse, status_code=201, tags=["Jobs"])
 async def create_job(
     job_data: JobCreate,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Create a new analysis job.
@@ -282,7 +290,7 @@ async def create_job(
 async def update_job(
     job_id: str,
     job_update: JobUpdate,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Update a job.
@@ -315,7 +323,7 @@ async def update_job(
 async def delete_job(
     job_id: str,
     soft: bool = True,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ):
     """
     Delete a job.
@@ -336,7 +344,7 @@ async def delete_job(
 @app.post("/api/v1/jobs/{job_id}/processing", response_model=JobResponse, tags=["Jobs"])
 async def mark_job_processing(
     job_id: str,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Mark a job as processing.
@@ -360,7 +368,7 @@ async def mark_job_processing(
 @app.post("/api/v1/jobs/{job_id}/complete", response_model=JobResponse, tags=["Jobs"])
 async def mark_job_completed(
     job_id: str,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Mark a job as completed.
@@ -385,7 +393,7 @@ async def mark_job_completed(
 async def mark_job_failed(
     job_id: str,
     error_message: str,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> JobResponse:
     """
     Mark a job as failed.
@@ -410,7 +418,7 @@ async def mark_job_failed(
 @app.get("/api/v1/jobs/pending", response_model=list[JobResponse], tags=["Jobs"])
 async def get_pending_jobs(
     limit: int = 10,
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> list[JobResponse]:
     """
     Get pending jobs for processing.
@@ -428,7 +436,7 @@ async def get_pending_jobs(
 
 @app.get("/api/v1/jobs/statistics", tags=["Jobs"])
 async def get_job_statistics(
-    repo: JobRepository = Depends(JobRepositoryDependency)
+    repo: JobRepository = Depends(get_job_repository)
 ) -> dict:
     """
     Get job statistics summary.
@@ -440,6 +448,132 @@ async def get_job_statistics(
         Dictionary with counts by status
     """
     return await repo.get_statistics()
+
+
+# =============================================================================
+# Result API Endpoints
+# =============================================================================
+
+async def get_result_repository(
+    session: AsyncSession = Depends(get_session)
+) -> ResultRepository:
+    """Dependency to provide ResultRepository instance."""
+    return ResultRepository(session)
+
+
+@app.post("/api/v1/results", response_model=AnalysisResultResponse, status_code=201, tags=["Results"])
+async def create_result(
+    result_data: AnalysisResultCreate,
+    session: AsyncSession = Depends(get_session)
+) -> AnalysisResultResponse:
+    """
+    Create a new analysis result.
+
+    Args:
+        result_data: Result creation data
+        session: Database session dependency
+
+    Returns:
+        Created result details
+    """
+    repo = ResultRepository(session)
+    result = await repo.create(
+        job_id=result_data.job_id,
+        provider=result_data.provider.value,
+        model=result_data.model,
+        result_json=result_data.result_json,
+        confidence=result_data.confidence,
+        tokens_used=result_data.tokens_used,
+        latency_ms=result_data.latency_ms
+    )
+    return AnalysisResultResponse.model_validate(result)
+
+
+@app.get("/api/v1/results", response_model=AnalysisResultListResponse, tags=["Results"])
+async def list_results(
+    *,
+    job_id: str = None,
+    provider: str = None,
+    min_confidence: float = None,
+    page: int = 1,
+    page_size: int = 20,
+    session: AsyncSession = Depends(get_session)
+) -> AnalysisResultListResponse:
+    """
+    List analysis results with optional filtering.
+
+    Args:
+        job_id: Filter by job ID (UUID string)
+        provider: Filter by provider name
+        min_confidence: Filter by minimum confidence score
+        page: Page number (1-indexed)
+        page_size: Number of items per page
+        session: Database session dependency
+
+    Returns:
+        Paginated list of results
+    """
+    from uuid import UUID
+
+    repo = ResultRepository(session)
+    offset = (page - 1) * page_size
+
+    if job_id:
+        results = await repo.get_by_job_id(
+            UUID(job_id),
+            offset=offset,
+            limit=page_size
+        )
+        total = await repo.get_result_count_by_job(UUID(job_id))
+    elif provider:
+        results = await repo.get_by_provider(
+            provider=provider,
+            offset=offset,
+            limit=page_size
+        )
+        total = await repo.get_result_count_by_provider(provider=provider)
+    elif min_confidence is not None:
+        results = await repo.get_high_confidence_results(
+            min_confidence=min_confidence,
+            limit=page_size
+        )
+        total = len(results)
+    else:
+        results = await repo.get_all(offset=offset, limit=page_size)
+        total = await repo.count()
+
+    return AnalysisResultListResponse(
+        items=[AnalysisResultResponse.model_validate(result) for result in results],
+        total=total,
+        page=page,
+        page_size=page_size,
+        has_more=(offset + len(results)) < total
+    )
+
+
+@app.get("/api/v1/results/{result_id}", response_model=AnalysisResultResponse, tags=["Results"])
+async def get_result(
+    result_id: str,
+    session: AsyncSession = Depends(get_session)
+) -> AnalysisResultResponse:
+    """
+    Get a result by ID.
+
+    Args:
+        result_id: Result UUID
+        session: Database session dependency
+
+    Returns:
+        Result details
+    """
+    from uuid import UUID
+    from fastapi import HTTPException
+
+    repo = ResultRepository(session)
+    result = await repo.get_by_id(UUID(result_id))
+    if not result:
+        raise HTTPException(status_code=404, detail="Result not found")
+    return AnalysisResultResponse.model_validate(result)
 
 
 # =============================================================================

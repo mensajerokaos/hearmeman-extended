@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from api.models.media import MediaFile
     from api.models.result import AnalysisResult
     from api.models.transcription import Transcription
+    from api.models.processing_log import ProcessingLog
 
 
 class JobStatus(StrEnum):
@@ -149,6 +150,13 @@ class AnalysisJob(Base, TimestampMixin):
 
     transcriptions: Mapped[list["Transcription"]] = relationship(
         "Transcription",
+        back_populates="job",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    processing_logs: Mapped[list["ProcessingLog"]] = relationship(
+        "ProcessingLog",
         back_populates="job",
         cascade="all, delete-orphan",
         lazy="selectin",

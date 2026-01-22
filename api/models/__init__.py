@@ -34,6 +34,11 @@ from api.models.transcription import (
     Transcription,
     TranscriptionProvider,
 )
+from api.models.processing_log import (
+    ProcessingLog,
+    ProcessingLogStatus,
+    ProcessingStage,
+)
 
 __all__ = [
     # Base class
@@ -52,4 +57,8 @@ __all__ = [
     # Transcription model
     "Transcription",
     "TranscriptionProvider",
+    # Processing log model
+    "ProcessingLog",
+    "ProcessingLogStatus",
+    "ProcessingStage",
 ]
