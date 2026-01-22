@@ -1,5 +1,62 @@
 services:
   # ===========================================
+  # PostgreSQL - Media Analysis Database
+  # Independent database for media analysis service
+  # ===========================================
+  media-pg-1:
+    image: postgres:16-alpine
+    container_name: media-pg-1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_admin_pwd_2026
+      POSTGRES_DB: media_analysis
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflict with any existing postgres
+    volumes:
+      - media-pg-data:/var/lib/postgresql/data
+      - ./init-media-db.sql:/docker-entrypoint-initdb.d/01-init-media-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d media_analysis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    profiles:
+      - database  # Start with: docker compose --profile database up -d
+
+  # ===========================================
+  # Media Analysis API
+  # FastAPI service for media analysis
+  # ===========================================
+  media-analysis-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    image: media-analysis-api:local
+    container_name: media-analysis-api
+    environment:
+      # Database configuration (uses media_analysis by default)
+      - MEDIA_DB_HOST=media-pg-1
+      - MEDIA_DB_PORT=5432
+      - MEDIA_DB_NAME=media_analysis
+      - MEDIA_DB_USER=media_analysis_user
+      - MEDIA_DB_PASSWORD=media_analysis_secure_pwd_2026
+      # Pool settings
+      - DB_POOL_MIN=5
+      - DB_POOL_MAX=20
+      - DB_POOL_OVERFLOW=10
+      # Logging
+      - LOG_LEVEL=INFO
+    ports:
+      - "8080:8080"
+    depends_on:
+      media-pg-1:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - api  # Start with: docker compose --profile api up -d
+
+  # ===========================================
   # Chatterbox TTS (Resemble AI)
   # API: http://localhost:8000/health
   # OpenAI-compatible: http://localhost:8000/v1/audio/speech
@@ -107,3 +164,4 @@ services:
 volumes:
   models:
   output:
+  media-pg-data:  # PostgreSQL data volume for media_analysis database

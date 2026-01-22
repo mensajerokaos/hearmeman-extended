@@ -1,0 +1,21 @@
+# Database Dependencies for ma-22 Database Layer
+# Generated: 2026-01-20
+
+# Core SQLAlchemy 2.0 async support
+sqlalchemy>=2.0.0
+
+# Async PostgreSQL driver
+asyncpg>=0.29.0
+
+# Greenlet for async/await support in SQLAlchemy
+greenlet>=3.0.0
+
+# Pydantic v2 for validation
+pydantic>=2.0.0
+pydantic[email]>=2.0.0
+
+# Optional: Database connection pooling monitoring
+# psycopg[binary]>=3.1.0  # Uncomment for sync PostgreSQL fallback
+
+# Optional: Migration tool
+# alembic>=1.13.0  # Uncomment for migrations (included in main requirements)
