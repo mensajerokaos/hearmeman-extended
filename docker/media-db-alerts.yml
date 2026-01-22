@@ -1,0 +1,179 @@
+# =============================================================================
+# Media Analysis Database Alert Configuration
+# =============================================================================
+# Alert thresholds for database monitoring.
+# Use with monitoring tools (Prometheus Alertmanager, Grafana, etc.)
+# =============================================================================
+
+# Alert Configuration
+alerts:
+  # Connection Pool Alerts
+  - name: HighConnectionUsage
+    description: "Database connection pool usage is above 80%"
+    metric: media_db_connections_total / media_db_connections_max
+    threshold: 0.80
+    severity: warning
+    duration: 5m
+    action: "Scale connection pool or investigate connection leaks"
+
+  - name: CriticalConnectionUsage
+    description: "Database connection pool usage is above 95%"
+    metric: media_db_connections_total / media_db_connections_max
+    threshold: 0.95
+    severity: critical
+    duration: 1m
+    action: "Immediate investigation required - new connections may fail"
+
+  # Disk Space Alerts
+  - name: HighDiskUsage
+    description: "Database disk usage is above 80%"
+    metric: disk_usage_percent
+    threshold: 80
+    severity: warning
+    duration: 10m
+    action: "Plan storage expansion or cleanup old data"
+
+  - name: CriticalDiskUsage
+    description: "Database disk usage is above 95%"
+    metric: disk_usage_percent
+    threshold: 95
+    severity: critical
+    duration: 1m
+    action: "Immediate action required - database may become read-only"
+
+  # Performance Alerts
+  - name: LongRunningQueries
+    description: "Queries running for more than 5 minutes"
+    metric: media_db_long_queries
+    threshold: 1
+    severity: warning
+    duration: 5m
+    action: "Investigate slow queries and optimize"
+
+  - name: LowCacheHitRatio
+    description: "Cache hit ratio below 90%"
+    metric: media_db_cache_hit_ratio
+    threshold: 90
+    operator: "<"
+    severity: warning
+    duration: 15m
+    action: "Consider increasing shared_buffers or optimizing queries"
+
+  - name: CriticalCacheHitRatio
+    description: "Cache hit ratio below 70%"
+    metric: media_db_cache_hit_ratio
+    threshold: 70
+    operator: "<"
+    severity: critical
+    duration: 5m
+    action: "Severe performance degradation - immediate investigation"
+
+  # Error Rate Alerts
+  - name: HighRollbackRate
+    description: "Transaction rollback rate above 1%"
+    metric: rollbacks / (commits + rollbacks)
+    threshold: 0.01
+    severity: warning
+    duration: 10m
+    action: "Investigate failed transactions and application errors"
+
+  - name: CriticalRollbackRate
+    description: "Transaction rollback rate above 5%"
+    metric: rollbacks / (commits + rollbacks)
+    threshold: 0.05
+    severity: critical
+    duration: 5m
+    action: "High error rate - check application logs and database constraints"
+
+  # Table Bloat Alerts
+  - name: TableBloat
+    description: "Dead rows exceed 20% of live rows"
+    metric: dead_rows / (live_rows + dead_rows)
+    threshold: 0.20
+    severity: warning
+    duration: 1h
+    action: "Schedule VACUUM ANALYZE"
+
+  - name: CriticalTableBloat
+    description: "Dead rows exceed 40% of live rows"
+    metric: dead_rows / (live_rows + dead_rows)
+    threshold: 0.40
+    severity: critical
+    duration: 30m
+    action: "Run VACUUM FULL during maintenance window"
+
+  # Replication Alerts (if applicable)
+  - name: ReplicationLag
+    description: "Replication lag exceeds 5 seconds"
+    metric: replication_lag_seconds
+    threshold: 5
+    severity: warning
+    duration: 2m
+    action: "Check replica health and network connectivity"
+
+  - name: CriticalReplicationLag
+    description: "Replication lag exceeds 30 seconds"
+    metric: replication_lag_seconds
+    threshold: 30
+    severity: critical
+    duration: 1m
+    action: "Replica may be falling behind - investigate immediately"
+
+  # Service Health Alerts
+  - name: DatabaseDown
+    description: "Database is not accepting connections"
+    metric: pg_up
+    threshold: 0
+    severity: critical
+    duration: 30s
+    action: "Database service is down - restart immediately"
+
+# Notification Channels
+notifications:
+  warning:
+    - type: slack
+      channel: "#ops-alerts"
+    - type: email
+      recipients:
+        - ops@example.com
+
+  critical:
+    - type: slack
+      channel: "#ops-critical"
+    - type: pagerduty
+      service_key: "${PAGERDUTY_SERVICE_KEY}"
+    - type: email
+      recipients:
+        - oncall@example.com
+        - ops@example.com
+
+# Maintenance Windows
+# Alerts are suppressed during these windows
+maintenance_windows:
+  - name: "Weekly Maintenance"
+    schedule: "0 4 * * 0"  # Sunday 4am
+    duration: 2h
+    suppress_alerts:
+      - TableBloat
+      - CriticalTableBloat
+
+# Thresholds for health check script
+health_thresholds:
+  connections_warning: 80  # percentage
+  connections_critical: 95
+  disk_warning: 80
+  disk_critical: 95
+  cache_warning: 90
+  cache_critical: 70
+  long_query_minutes: 5
+  dead_rows_warning: 20
+  dead_rows_critical: 40
+  replication_lag_warning: 5
+  replication_lag_critical: 30
+
+# Labels for metrics
+metric_labels:
+  environment: "${ENVIRONMENT:-development}"
+  service: "media-analysis"
+  database: "media_analysis"
+  component: "postgresql"
