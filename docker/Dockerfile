@@ -6,6 +6,9 @@
 # ============================================
 # NOTE: Using multi-stage build to keep final image smaller
 # Builder stage installs compilation tools, final stage copies them
+
+# Define BASE_IMAGE before first FROM
+ARG BASE_IMAGE=runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 FROM ubuntu:22.04 AS builder
 
 # Prevent interactive prompts during package installation
@@ -79,7 +82,6 @@ ENV PATH=$VIRTUAL_ENV/bin:$PATH
 # STAGE 2: RUNTIME - Base Image with Dependencies
 # ============================================
 # Continue with the original base image but with builder tools available
-ARG BASE_IMAGE=runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 FROM ${BASE_IMAGE}
 
 # OCI Labels for GHCR linking
@@ -261,29 +263,16 @@ RUN pip install --no-cache-dir \
 
 # ============================================================
 # STAGE 3: VISION/VIDEO LIBRARIES
-# Purpose: Install mmcv, mmpose, and DWPose for computer vision
-# Estimated Time: 15 minutes
+# Purpose: Install DWPose for computer vision/pose estimation
+# Note: mmcv-full and mmpose removed due to PyTorch version incompatibility
+#       (mmcv 2.1.0 requires PyTorch 2.4.x but base image has 2.8.0.dev)
+#       DWPose works standalone without mmcv/mmpose dependencies
+# Estimated Time: 5 minutes
 # ============================================================
-
-# Install mmcv-full 2.1.0 with CUDA support
-# Critical: Must specify CUDA-enabled version
-RUN pip install --no-cache-dir \
-    mmcv-full==2.1.0 \
-    -f https://mmcv.openmmlab.com/whl/torch2.4.0.html
-
-# Verify mmcv installation
-RUN python3 -c "import mmcv; print(f'MMCV: {mmcv.__version__}')" || \
-    python3 -c "import mmcv; print(f'MMCV: {mmcv.__version__}')"
-
-# Install mmpose 1.3.2
-# Depends on mmcv-full, must be installed after
-RUN pip install --no-cache-dir mmpose==1.3.2
-
-# Verify mmpose installation
-RUN python3 -c "import mmpose; print(f'MMPose: {mmpose.__version__}')"
 
 # Install DWPose for accurate pose estimation
 # Required for SteadyDancer video generation
+# DWPose works standalone - no mmcv/mmpose required
 RUN pip install --no-cache-dir \
     dwpose \
     --find-links https://github.com/CMU-Perceptual-Computing-Lab/dwpose/releases
@@ -297,9 +286,6 @@ RUN python3 << 'EOF'
 import sys
 
 packages = {
-    'mmcv': 'MMCV',
-    'mmcv_full': 'MMCV-Full',
-    'mmpose': 'MMPose',
     'dwpose': 'DWPose'
 }
 
@@ -318,7 +304,7 @@ if failed:
     print(f"\nFailed packages: {', '.join(failed)}")
     sys.exit(1)
 else:
-    print("\nAll vision/video libraries installed successfully")
+    print("\nVision/video libraries installed successfully (DWPose only)")
 EOF
 
 # ============================================================
@@ -336,6 +322,15 @@ RUN pip install --no-cache-dir \
 # Retries on failure to handle ABI compatibility issues
 RUN pip install --no-cache-dir flash_attn==2.7.4.post1 \
     2>/dev/null || echo "[Note] flash_attn install failed, using xformers fallback"
+
+# xformers - Memory optimization for Stable Diffusion (alternative to Flash Attention)
+RUN pip install --no-cache-dir xformers==0.0.29.post1 || true
+
+# Install SteadyDancer video processing dependencies
+# moviepy: Video editing and processing (timeline-based operations)
+# decord: Fast video decoding with GPU acceleration
+RUN pip install --no-cache-dir moviepy==2.2.1 decord==0.6.0 || \
+    pip install --no-cache-dir moviepy decord || true
 
 # ============================================
 # Layer 5: Scripts and Configuration
