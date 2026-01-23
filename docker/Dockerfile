@@ -1,6 +1,84 @@
 # ============================================
-# Hearmeman Extended Template
+# STAGE 1: BUILDER - System Dependencies
+# Purpose: Install build tools and CUDA toolkit for compiling
+#         Python packages with GPU support
+# Estimated Time: 5 minutes
 # ============================================
+# NOTE: Using multi-stage build to keep final image smaller
+# Builder stage installs compilation tools, final stage copies them
+FROM ubuntu:22.04 AS builder
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update package lists
+RUN apt-get update && apt-get upgrade -y
+
+# Install essential build tools and CUDA development packages
+RUN apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    cuda-toolkit-12-4 \
+    cuda-libraries-dev-12-4 \
+    cuda-nvcc-12-4 \
+    gcc-11 \
+    g++-11 \
+    pkg-config \
+    git \
+    wget \
+    curl \
+    vim \
+    nano \
+    htop \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set GCC/G++ version for CUDA compatibility
+ENV CC=/usr/bin/gcc-11
+ENV CXX=/usr/bin/g++-11
+
+# Install Python development headers and system libraries
+RUN apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
+    python3-venv \
+    python3-wheel \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for python3
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python
+
+# Configure Python environment for optimal build performance
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_INSTALL_STRATEGY=only-if-needed \
+    MAX_JOBS=4 \
+    TORCH_CUDA_ARCH_LIST=8.6,8.9,9.0 \
+    CUDA_HOME=/usr/local/cuda-12.4 \
+    LD_LIBRARY_PATH=/usr/local/cuda-12.4/lib64:$LD_LIBRARY_PATH \
+    PATH=/usr/local/cuda-12.4/bin:$PATH
+
+# Create Python virtual environment
+RUN python3 -m venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH=$VIRTUAL_ENV/bin:$PATH
+
+# ============================================
+# STAGE 2: RUNTIME - Base Image with Dependencies
+# ============================================
+# Continue with the original base image but with builder tools available
 ARG BASE_IMAGE=runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 FROM ${BASE_IMAGE}
 
@@ -51,6 +129,11 @@ ENV R2_ENDPOINT="https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorag
 ENV R2_BUCKET="runpod"
 ENV R2_ACCESS_KEY_ID=""
 ENV R2_SECRET_ACCESS_KEY=""
+
+# HuggingFace Token for gated models (required for VibeVoice-Large, Qwen models, and other gated repos)
+# Users MUST set this via pod template or environment variable: --env "HF_TOKEN=hf_..."
+# Get token from: https://huggingface.co/settings/tokens
+ENV HF_TOKEN=""
 
 ENV COMFYUI_ARGS=""
 # For: --lowvram, --medvram, --novram, --cpu-vae, etc.
@@ -176,9 +259,71 @@ RUN pip install --no-cache-dir \
     # NVIDIA GPU management (for TurboDiffusion)
     pynvml
 
-# ============================================
-# Layer 4.5: SteadyDancer Dependencies
-# ============================================
+# ============================================================
+# STAGE 3: VISION/VIDEO LIBRARIES
+# Purpose: Install mmcv, mmpose, and DWPose for computer vision
+# Estimated Time: 15 minutes
+# ============================================================
+
+# Install mmcv-full 2.1.0 with CUDA support
+# Critical: Must specify CUDA-enabled version
+RUN pip install --no-cache-dir \
+    mmcv-full==2.1.0 \
+    -f https://mmcv.openmmlab.com/whl/torch2.4.0.html
+
+# Verify mmcv installation
+RUN python3 -c "import mmcv; print(f'MMCV: {mmcv.__version__}')" || \
+    python3 -c "import mmcv; print(f'MMCV: {mmcv.__version__}')"
+
+# Install mmpose 1.3.2
+# Depends on mmcv-full, must be installed after
+RUN pip install --no-cache-dir mmpose==1.3.2
+
+# Verify mmpose installation
+RUN python3 -c "import mmpose; print(f'MMPose: {mmpose.__version__}')"
+
+# Install DWPose for accurate pose estimation
+# Required for SteadyDancer video generation
+RUN pip install --no-cache-dir \
+    dwpose \
+    --find-links https://github.com/CMU-Perceptual-Computing-Lab/dwpose/releases
+
+# Verify DWPose installation
+RUN python3 -c "import dwpose; print('DWPose: OK')" || \
+    python3 -c "import dwpose; print('DWPose: OK')"
+
+# Comprehensive verification of vision/video libraries
+RUN python3 << 'EOF'
+import sys
+
+packages = {
+    'mmcv': 'MMCV',
+    'mmcv_full': 'MMCV-Full',
+    'mmpose': 'MMPose',
+    'dwpose': 'DWPose'
+}
+
+failed = []
+
+for pkg, name in packages.items():
+    try:
+        module = __import__(pkg)
+        version = getattr(module, '__version__', 'unknown')
+        print(f"OK: {name}: {version}")
+    except (ImportError, AttributeError) as e:
+        print(f"FAILED: {name}: {str(e)}")
+        failed.append(pkg)
+
+if failed:
+    print(f"\nFailed packages: {', '.join(failed)}")
+    sys.exit(1)
+else:
+    print("\nAll vision/video libraries installed successfully")
+EOF
+
+# ============================================================
+# STAGE 4: STEADYDANCER DEPENDENCIES
+# ============================================================
 # Install in specific order to avoid ABI conflicts
 # CRITICAL: PyTorch 2.5.1 required for mmpose compatibility
 RUN pip install --no-cache-dir \
@@ -186,15 +331,6 @@ RUN pip install --no-cache-dir \
     --index-url https://download.pytorch.org/whl/cu124 \
     2>/dev/null || pip install --no-cache-dir \
     torch torchvision torchaudio
-
-# Pose estimation dependencies (MMSelfCom workstack)
-RUN pip install --no-cache-dir \
-    mmengine \
-    mmcv==2.1.0 \
-    mmdet>=3.1.0 \
-    mmpose \
-    dwpose>=0.1.0 \
-    2>/dev/null || echo "[Note] MMPose/DWPose stack install failed, some features may be limited"
 
 # Flash Attention - REQUIRED for optimal performance with SteadyDancer
 # Retries on failure to handle ABI compatibility issues
