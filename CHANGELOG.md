@@ -443,3 +443,51 @@ Track across all sessions:
 **Duration**: ~10 hours 28 minutes
 
 ---
+
+## 2026-01-22 Session: SteadyDancer Requirements Analysis
+
+**Start**: 2026-01-22 19:15:00 CST (CDMX)
+**Author**: oz + Claude Haiku 4.5
+
+**Task**: Verify requirements for SteadyDancer, TurboDiffusion, and WAN 2.2 deployment
+
+**Analysis Results**:
+
+| Component | Dockerfile Version | Requirement Source | Status |
+|-----------|-------------------|-------------------|--------|
+| **PyTorch (base)** | 2.8.0.dev (CUDA 12.8) | runpod/pytorch:2.8.0 image | OK |
+| **mmcv-full** | 2.1.0 | OpenMMLab wheel (torch 2.4) | INCOMPATIBLE |
+| **mmpose** | 1.3.2 | Requires mmcv-full | May fail |
+| **DWPose** | Latest from GitHub | Standalone install | OK |
+| **WanVideoWrapper** | Latest | requirements.txt | OK |
+| **TurboDiffusion** | Latest | requirements.txt | OK |
+
+**Key Findings**:
+1. mmcv-full 2.1.0 requires PyTorch 2.4.x but base image has PyTorch 2.8.0.dev
+2. OpenMMLab wheel index only provides versions for torch 2.1, 2.2, 2.3, 2.4
+3. mmcv-full 1.7.2 is the last universal version (PyPI) compatible with any PyTorch
+4. DWPose can work standalone without mmcv/mmpose for pose estimation
+5. WanVideoWrapper and TurboDiffusion requirements are compatible
+
+**Root Cause**: Modified Dockerfile uses `mmcv-full==2.1.0 -f https://mmcv.openmmlab.com/whl/torch2.4.0.html` which only works with PyTorch 2.4.x
+
+**Solutions**:
+1. Use mmcv-full 1.7.2 (last universal version on PyPI)
+2. Skip mmcv/mmpose entirely - DWPose works standalone
+3. Change base image to PyTorch 2.4.x with CUDA 12.1/12.3
+
+**Changes Made**:
+- Added `ENV HF_TOKEN=""` to Dockerfile for gated model downloads
+- Added `ENABLE_DWPOSE=true` to docker-compose.yml
+- Added HuggingFace token documentation to CLAUDE.md
+- Created test input placeholders (TEST_INPUTS_README.md)
+
+**Status**: Analysis complete, fix pending
+
+**Next Steps**:
+- Fix mmcv version compatibility (use 1.7.2 or skip)
+- Test Docker build with corrected requirements
+- Test SteadyDancer model download with HF_TOKEN
+- Verify DWPose installation
+
+---
