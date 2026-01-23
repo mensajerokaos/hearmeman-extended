@@ -49,15 +49,32 @@ download_model() {
     echo "  [Download] $NAME ${EXPECTED_SIZE:+($EXPECTED_SIZE)} from ${URL%%\?*}"
     mkdir -p "$(dirname "$DEST")"
 
-    # Use wget with timeout and progress bar directly to stderr
+    # Use wget with timeout and progress bar - with HF_TOKEN support
     local WGET_EXIT=0
-    timeout "$DOWNLOAD_TIMEOUT" wget -c --progress=bar:force:noscroll -O "$DEST" "$URL" 2>&1 || WGET_EXIT=$?
+    if [ -n "$HF_TOKEN" ]; then
+        # Use eval to properly handle the header with spaces
+        timeout "$DOWNLOAD_TIMEOUT" wget -c --progress=bar:force:noscroll \
+            --header="Authorization: Bearer $HF_TOKEN" \
+            -O "$DEST" "$URL" 2>&1 || WGET_EXIT=$?
+    else
+        timeout "$DOWNLOAD_TIMEOUT" wget -c --progress=bar:force:noscroll \
+            -O "$DEST" "$URL" 2>&1 || WGET_EXIT=$?
+    fi
 
     if [ $WGET_EXIT -ne 0 ]; then
         echo "  [Warn] wget failed (exit $WGET_EXIT), trying curl..."
-        timeout "$DOWNLOAD_TIMEOUT" curl -L -C - --progress-bar -o "$DEST" "$URL" 2>&1 || {
+        local CURL_EXIT=0
+        if [ -n "$HF_TOKEN" ]; then
+            timeout "$DOWNLOAD_TIMEOUT" curl -L -C - \
+                -H "Authorization: Bearer $HF_TOKEN" \
+                --progress-bar -o "$DEST" "$URL" 2>&1 || CURL_EXIT=$?
+        else
+            timeout "$DOWNLOAD_TIMEOUT" curl -L -C - \
+                --progress-bar -o "$DEST" "$URL" 2>&1 || CURL_EXIT=$?
+        fi
+        if [ $CURL_EXIT -ne 0 ]; then
             # Check for gated model error
-            if grep -q "401\|Unauthorized\|gated\|authentication" "$DEST" 2>/dev/null; then
+            if grep -q "401\|Unauthorized\|gated\|authentication\|Invalid username" "$DEST" 2>/dev/null; then
                 echo "  [ERROR] $NAME - Model requires authentication!"
                 echo "  [ERROR] This is a gated model on HuggingFace."
                 echo "  [ERROR] Solution: Set HF_TOKEN environment variable or accept license at:"
@@ -68,7 +85,7 @@ download_model() {
                 rm -f "$DEST"
             fi
             return 1
-        }
+        fi
     fi
 
     # Verify download
@@ -331,44 +348,45 @@ fi
 # ============================================
 # SteadyDancer (Human Image Animation)
 # VRAM: 14-28GB | Size: 14-28GB
+# Note: Using smthem/SteadyDancer-14B-diffusers-gguf-dit which has consolidated model files
 # ============================================
 if [ "${ENABLE_STEADYDANCER:-false}" = "true" ]; then
     echo ""
-    echo "[SteadyDancer] Downloading model (~14-28GB)..."
+    echo "[SteadyDancer] Downloading model (~28GB)..."
 
-    STEADYDANCER_VARIANT="${STEADYDANCER_VARIANT:-fp8}"
+    STEADYDANCER_VARIANT="${STEADYDANCER_VARIANT:-bf16}"
 
     case "$STEADYDANCER_VARIANT" in
-        "fp16")
-            echo "  [Info] Downloading fp16 variant (~28GB)..."
-            hf_download "MCG-NJU/SteadyDancer-14B" \
-                "Wan21_SteadyDancer_fp16.safetensors" \
-                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp16.safetensors" \
+        "bf16")
+            echo "  [Info] Downloading bf16 variant (~28GB) from smthem/SteadyDancer-14B-diffusers-gguf-dit..."
+            hf_download "smthem/SteadyDancer-14B-diffusers-gguf-dit" \
+                "SteadyDancer-14B-Bf16.safetensors" \
+                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp8.safetensors" \
                 "28GB"
             ;;
-        "fp8")
-            echo "  [Info] Downloading fp8 variant (~14GB)..."
-            hf_download "kijai/SteadyDancer-14B-pruned" \
-                "Wan21_SteadyDancer_fp8.safetensors" \
-                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp8.safetensors" \
-                "14GB"
-            ;;
         "gguf")
-            echo "  [Info] Downloading GGUF quantized variant..."
+            echo "  [Info] Downloading GGUF variant (~8GB)..."
             mkdir -p "$MODELS_DIR/steadydancer"
             python3 -c "
 from huggingface_hub import hf_hub_download
 import os
 
-GGUF_FILE='steadydancer-14B-q4_k_m.gguf'
+GGUF_FILE='SteadyDancer_wan-14B-Q6_K.gguf'
 hf_hub_download(
-    repo_id='MCG-NJU/SteadyDancer-GGUF',
+    repo_id='smthem/SteadyDancer-14B-diffusers-gguf-dit',
     filename=GGUF_FILE,
     local_dir='$MODELS_DIR/steadydancer',
     local_dir_use_symlinks=False
 )
 print('  [OK] GGUF model downloaded')
 " 2>&1 || echo "  [Error] GGUF download failed"
+            ;;
+        *)
+            echo "  [Info] Downloading default variant..."
+            hf_download "smthem/SteadyDancer-14B-diffusers-gguf-dit" \
+                "SteadyDancer-14B-Bf16.safetensors" \
+                "$MODELS_DIR/diffusion_models/Wan21_SteadyDancer_fp8.safetensors" \
+                "28GB"
             ;;
     esac
 
