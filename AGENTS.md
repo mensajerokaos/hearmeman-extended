@@ -160,6 +160,9 @@ curl -X POST http://localhost:8000/v1/audio/speech \
 |----------|-------------------|
 | 16GB (4080 Super) | VibeVoice 1.5B |
 | 24GB+ (A6000, L40S) | VibeVoice 7B |
+| 24-28GB (marginal) / 32GB+ (recommended) | SteadyDancer (fp8) |
+| 40GB+ | SteadyDancer (fp16) |
+| 20-24GB | SteadyDancer (GGUF) |
 
 ---
 
@@ -294,6 +297,56 @@ python3 /upload_to_r2.py --prefix videos /workspace/ComfyUI/output/video.mp4
 
 ---
 
+## HuggingFace Token for Gated Models
+
+Several models in this template are hosted on HuggingFace and require authentication to download, including:
+- **VibeVoice-Large** (aoi-ot/VibeVoice-Large)
+- **Qwen models** for text encoding
+- **SteadyDancer** (kijai/SteadyDancer-14B-pruned)
+- **TurboDiffusion** (kijai/wan-2.1-turbodiffusion)
+
+### Setup: RunPod Secrets (Recommended)
+
+**Never expose tokens in plain text.** Use [RunPod Secrets](https://docs.runpod.io/pods/templates/secrets) for secure storage:
+
+1. **Get your HuggingFace token**:
+   - Go to: https://huggingface.co/settings/tokens
+   - Create a new token with "Read" permission
+   - Copy the token (starts with `hf_...`)
+
+2. **Create secrets in RunPod Console**:
+   - Go to **Settings > Secrets**
+   - Create `hf_token` with your HuggingFace token value
+
+3. **Reference in pod template** using `RUNPOD_SECRET_` prefix:
+   ```
+   HF_TOKEN={{RUNPOD_SECRET_hf_token}}
+   ```
+
+### Configuration
+
+| Variable | Default | Required For |
+|----------|---------|--------------|
+| `HF_TOKEN` | (empty) | VibeVoice-Large, Qwen models, gated repos |
+
+### Local Docker Testing
+
+For local testing, export the token before starting:
+```bash
+export HF_TOKEN="hf_..."
+cd docker && docker compose up -d
+```
+
+### Verification
+
+After starting the pod, check the logs to verify the token is being used:
+```bash
+# Check if models download successfully
+docker logs <container_id> 2>&1 | grep -i "huggingface\|downloading"
+```
+
+---
+
 ## RunPod Deployment Requirements
 
 ### Pod Creation Command (Production-Ready)
@@ -311,8 +364,9 @@ python3 /upload_to_r2.py --prefix videos /workspace/ComfyUI/output/video.mp4
   --ports "19123/http" \
   --env "ENABLE_ILLUSTRIOUS=true" \
   --env "CIVITAI_API_KEY=<key>" \
-  --env "R2_ACCESS_KEY_ID=<key>" \
-  --env "R2_SECRET_ACCESS_KEY=<secret>" \
+  --env "HF_TOKEN={{RUNPOD_SECRET_hf_token}}" \
+  --env "R2_ACCESS_KEY_ID={{RUNPOD_SECRET_r2_access_key}}" \
+  --env "R2_SECRET_ACCESS_KEY={{RUNPOD_SECRET_r2_secret_key}}" \
   --env "R2_ENDPOINT=https://8755d4118d392ca7e1a6e1e5733cf55f.eu.r2.cloudflarestorage.com" \
   --env "R2_BUCKET=runpod" \
   --env "ENABLE_R2_SYNC=true"
