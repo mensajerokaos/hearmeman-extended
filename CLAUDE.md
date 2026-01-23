@@ -160,6 +160,9 @@ curl -X POST http://localhost:8000/v1/audio/speech \
 |----------|-------------------|
 | 16GB (4080 Super) | VibeVoice 1.5B |
 | 24GB+ (A6000, L40S) | VibeVoice 7B |
+| 24-28GB (marginal) / 32GB+ (recommended) | SteadyDancer (fp8) |
+| 40GB+ | SteadyDancer (fp16) |
+| 20-24GB | SteadyDancer (GGUF) |
 
 ---
 
