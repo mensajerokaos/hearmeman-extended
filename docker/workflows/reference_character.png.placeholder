@@ -1,0 +1,6 @@
+# Placeholder for reference character image
+
+REQUIRED: Replace with reference_character.png (512x512 recommended)
+
+This file should contain the character image you want to animate.
+See TEST_INPUTS_README.md for requirements.
