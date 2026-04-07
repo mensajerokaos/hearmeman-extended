@@ -530,3 +530,34 @@ Track across all sessions:
 **Duration**: ~24 minutes
 
 ---
+
+## 2026-04-07 Session: Quality-Loop PRDs for Self-Hosted Video APIs
+
+**Start**: 2026-04-07 17:49:07 CST (CDMX)
+**Author**: oz + Codex
+
+**Tasks**:
+- [x] Run branch/worktree check and RLM preflight in `/home/oz/projects/2025/oz/12/runpod`
+- [x] Create avatar-first PRD for a Seedance-style MagiHuman endpoint without ComfyUI serving dependency
+  - Draft: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/runpod-magihuman-direct-api.md`
+  - Improved: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/runpod-magihuman-direct-api-improved.md`
+- [x] Create control-first PRD for a non-ComfyUI video API using direct model runners
+  - Draft: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/runpod-control-first-video-api.md`
+  - Improved: `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/plan/runpod-control-first-video-api-improved.md`
+- [x] Produce merge notes for both quality-loop passes
+  - `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/sages/runpod-magihuman-direct-api-20260407-174907/merge.md`
+  - `/home/oz/projects/2025/oz/12/runpod/dev/agents/artifacts/doc/sages/runpod-control-first-video-api-20260407-174907/merge.md`
+- [x] Capture the reusable architecture split in RLM and local memory
+
+**Key Findings**:
+1. A Seedance-style async API is feasible on our own RunPod stack without ComfyUI in the serving path.
+2. `daVinci-MagiHuman` fits an avatar-first endpoint well, but its native input surface is still prompt + image + optional audio rather than broad control conditioning.
+3. A separate control-first endpoint should use direct Wan 2.2 runners rather than overloading MagiHuman or forcing ComfyUI into the production request path.
+4. The repo already has a usable FastAPI + PostgreSQL job skeleton, but there is still deployment drift because `docker/docker-compose.yml` references `docker/Dockerfile.api` and that file is currently missing.
+
+**Status**: Completed
+
+**End**: 2026-04-07 17:54:37 CST (CDMX)
+**Duration**: ~6 minutes
+
+---
