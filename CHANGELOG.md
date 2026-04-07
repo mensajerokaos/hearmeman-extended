@@ -491,3 +491,42 @@ Track across all sessions:
 - Verify DWPose installation
 
 ---
+
+## 2026-04-07 Session: MagiHuman Research + RLM Ingestion
+
+**Start**: 2026-04-07 13:34:00 CST (CDMX)
+**Author**: oz + Codex
+
+**Tasks**:
+- [x] Run branch/worktree check and RLM preflight in `/home/oz/projects/2025/oz/12/runpod`
+- [x] Download YouTube auto-captions for `https://www.youtube.com/watch?v=6Il0CJx9yU8`
+  - Anonymous `yt-dlp` and `youtube-transcript-api` were blocked by YouTube
+  - `yt-dlp --cookies-from-browser chrome` succeeded
+- [x] Normalize and store the transcript in RLM
+  - Stored: `/mnt/rlm/knowledge/projects/runpod/research/youtube/youtube-subtitles-verbatim-6il0cjx9yu8-en-orig.md`
+- [x] Analyze `GAIR-NLP/daVinci-MagiHuman` for RunPod deployment feasibility
+  - Stored: `/mnt/rlm/knowledge/projects/runpod/patterns/davinci-magihuman-runpod-feasibility-april-2026.md`
+- [x] Store reusable YouTube subtitle fetch gotcha in RLM
+  - Stored: `/mnt/rlm/knowledge/projects/runpod/gotchas/youtube-subtitle-fetch-requires-browser--s-on-blocked-ips.md`
+
+**Key Findings**:
+1. `daVinci-MagiHuman` is viable on RunPod, but the practical checkpoint footprint is still large:
+   - Base 256p: ~80.8 GB
+   - Distill 256p: ~111.4 GB
+   - 1080p path: ~142.0 GB
+2. Current official RunPod pricing checked on 2026-04-07:
+   - H100 NVL Pod: `$2.59/hr` Community, `$3.07/hr` Secure
+   - H100 PRO Serverless: `$0.00116/s` Flex
+3. Inference is cheap compared to cold start:
+   - 5s 1080p generation is only about `$0.03-$0.04`
+   - First-run checkpoint download dominates cost (~`$2.37` on H100 Secure for the 1080p bundle at ~51.2 MB/s)
+4. Better adjacent opportunities from the same video:
+   - `PrismAudio` looks like a lighter near-term RunPod candidate
+   - `ComfyUI Dynamic VRAM` is immediately useful for this repo
+
+**Status**: Completed
+
+**End**: 2026-04-07 13:58:26 CST (CDMX)
+**Duration**: ~24 minutes
+
+---
