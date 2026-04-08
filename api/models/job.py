@@ -14,7 +14,7 @@ from sqlalchemy import DateTime, Enum, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from api.models.base import Base, TimestampMixin
+from api.models.base import Base, SoftDeleteMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from api.models.media import MediaFile
@@ -29,15 +29,19 @@ class JobStatus(StrEnum):
 
     States:
         - pending: Job created, awaiting processing
+        - staged: Job accepted and queued for GPU execution
         - processing: Job is currently being processed
         - completed: Job finished successfully
         - failed: Job encountered an error
+        - canceled: Job was canceled before completion
     """
 
     PENDING = "pending"
+    STAGED = "staged"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELED = "canceled"
 
 
 class MediaType(StrEnum):
@@ -55,7 +59,7 @@ class MediaType(StrEnum):
     IMAGE = "image"
 
 
-class AnalysisJob(Base, TimestampMixin):
+class AnalysisJob(Base, TimestampMixin, SoftDeleteMixin):
     """
     Model representing a media analysis job.
 

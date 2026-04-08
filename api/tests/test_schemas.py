@@ -11,28 +11,30 @@ This module tests:
 
 import sys
 from datetime import datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
 
-sys.path.insert(0, "/home/oz/projects/2025/oz/12/runpod/api")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from schemas.job import JobCreate, JobResponse, JobUpdate, JobStatus, MediaType
-from schemas.media import (
+from api.schemas.job import JobCreate, JobResponse, JobUpdate, JobStatus, MediaType
+from api.schemas.media import (
     MediaFileCreate,
     MediaFileResponse,
     MediaFileUpdate,
     FileType,
     MediaFileStatus,
 )
-from schemas.result import (
+from api.schemas.result import (
     AnalysisResultCreate,
     AnalysisResultResponse,
     AnalysisResultUpdate,
     AnalysisProvider,
 )
-from schemas.transcription import (
+from api.schemas.transcription import (
     TranscriptionCreate,
     TranscriptionResponse,
     TranscriptionUpdate,
@@ -155,7 +157,7 @@ class TestJobResponseSchema:
 
     def test_job_response_from_dict(self, sample_job):
         """Test creating JobResponse from model instance."""
-        from schemas.job import JobResponse
+        from api.schemas.job import JobResponse
 
         response = JobResponse.model_validate(sample_job)
 
@@ -166,7 +168,7 @@ class TestJobResponseSchema:
 
     def test_job_response_serialization(self, sample_job):
         """Test JobResponse serializes all fields."""
-        from schemas.job import JobResponse
+        from api.schemas.job import JobResponse
 
         response = JobResponse.model_validate(sample_job)
         dumped = response.model_dump()
@@ -181,7 +183,7 @@ class TestJobResponseSchema:
 
     def test_job_response_json_serialization(self, sample_job):
         """Test JobResponse serializes to JSON."""
-        from schemas.job import JobResponse
+        from api.schemas.job import JobResponse
 
         response = JobResponse.model_validate(sample_job)
         json_str = response.model_dump_json()
@@ -265,7 +267,7 @@ class TestMediaFileResponseSchema:
 
     def test_media_file_response_from_dict(self, sample_media_file):
         """Test creating MediaFileResponse from model instance."""
-        from schemas.media import MediaFileResponse
+        from api.schemas.media import MediaFileResponse
 
         response = MediaFileResponse.model_validate(sample_media_file)
 
@@ -341,7 +343,7 @@ class TestAnalysisResultResponseSchema:
 
     def test_analysis_result_response_from_dict(self, sample_analysis_result):
         """Test creating AnalysisResultResponse from model instance."""
-        from schemas.result import AnalysisResultResponse
+        from api.schemas.result import AnalysisResultResponse
 
         response = AnalysisResultResponse.model_validate(sample_analysis_result)
 
@@ -403,7 +405,7 @@ class TestTranscriptionResponseSchema:
 
     def test_transcription_response_from_dict(self, sample_transcription):
         """Test creating TranscriptionResponse from model instance."""
-        from schemas.transcription import TranscriptionResponse
+        from api.schemas.transcription import TranscriptionResponse
 
         response = TranscriptionResponse.model_validate(sample_transcription)
 

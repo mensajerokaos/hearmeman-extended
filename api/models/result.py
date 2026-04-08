@@ -14,7 +14,7 @@ from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from api.models.base import Base, TimestampMixin
+from api.models.base import Base, SoftDeleteMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from api.models.job import AnalysisJob
@@ -41,7 +41,7 @@ class AnalysisProvider(StrEnum):
     LOCAL = "local"
 
 
-class AnalysisResult(Base, TimestampMixin):
+class AnalysisResult(Base, TimestampMixin, SoftDeleteMixin):
     """
     Model representing an analysis result from an AI provider.
 

@@ -10,18 +10,28 @@ This module provides pytest fixtures for database testing, including:
 
 import asyncio
 import sys
+from pathlib import Path
 from typing import AsyncGenerator, Generator
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
 from sqlalchemy import event
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Add api directory to path for imports
-sys.path.insert(0, "/home/oz/projects/2025/oz/12/runpod/api")
+# Add project root to path for imports.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(_type, _compiler, **_kwargs):
+    """Compile PostgreSQL JSONB columns as JSON for SQLite-backed tests."""
+    return "JSON"
 
 from api.models.base import Base
 from api.models.job import AnalysisJob, JobStatus, MediaType

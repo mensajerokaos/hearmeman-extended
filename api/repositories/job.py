@@ -139,21 +139,22 @@ class JobRepository(BaseRepository[AnalysisJob]):
 
     async def get_pending_jobs(self, limit: int = 10) -> List[AnalysisJob]:
         """
-        Get pending jobs ordered by creation date (oldest first).
+        Get queued jobs ordered by creation date (oldest first).
 
-        Useful for processing queues where oldest jobs should be processed first.
+        Useful for processing queues where oldest accepted jobs should be
+        processed first.
 
         Args:
             limit: Maximum number of jobs to return
 
         Returns:
-            List of pending AnalysisJob instances
+            List of queued AnalysisJob instances
         """
         stmt = (
             select(self.model)
             .where(
                 and_(
-                    self.model.status == JobStatus.PENDING,
+                    self.model.status.in_([JobStatus.PENDING, JobStatus.STAGED]),
                     self.model.is_deleted == False  # type: ignore[attr-defined]
                 )
             )
@@ -335,10 +336,15 @@ class JobRepository(BaseRepository[AnalysisJob]):
         """
         update_data: dict = {"status": status, "updated_at": datetime.utcnow()}
 
-        if status == JobStatus.COMPLETED:
+        if status in {JobStatus.COMPLETED, JobStatus.CANCELED}:
             update_data["completed_at"] = datetime.utcnow()
+            if status == JobStatus.CANCELED:
+                update_data["error_message"] = error_message or "Task canceled by user"
         elif status == JobStatus.FAILED:
             update_data["error_message"] = error_message or "Unknown error"
+        elif status == JobStatus.STAGED:
+            update_data["completed_at"] = None
+            update_data["error_message"] = None
 
         stmt = (
             select(self.model)
@@ -368,6 +374,18 @@ class JobRepository(BaseRepository[AnalysisJob]):
         """
         return await self.update_status(id_, JobStatus.PROCESSING)
 
+    async def mark_as_staged(self, id_: UUID) -> Optional[AnalysisJob]:
+        """
+        Mark a job as staged.
+
+        Args:
+            id_: Job UUID
+
+        Returns:
+            Updated AnalysisJob instance or None
+        """
+        return await self.update_status(id_, JobStatus.STAGED)
+
     async def mark_as_completed(self, id_: UUID) -> Optional[AnalysisJob]:
         """
         Mark a job as completed.
@@ -396,6 +414,23 @@ class JobRepository(BaseRepository[AnalysisJob]):
             Updated AnalysisJob instance or None
         """
         return await self.update_status(id_, JobStatus.FAILED, error_message)
+
+    async def mark_as_canceled(
+        self,
+        id_: UUID,
+        error_message: str = "Task canceled by user",
+    ) -> Optional[AnalysisJob]:
+        """
+        Mark a job as canceled with optional message.
+
+        Args:
+            id_: Job UUID
+            error_message: Cancellation detail
+
+        Returns:
+            Updated AnalysisJob instance or None
+        """
+        return await self.update_status(id_, JobStatus.CANCELED, error_message)
 
     async def get_job_with_relations(
         self,
@@ -451,9 +486,11 @@ class JobRepository(BaseRepository[AnalysisJob]):
 
         stats = {
             "pending": 0,
+            "staged": 0,
             "processing": 0,
             "completed": 0,
             "failed": 0,
+            "canceled": 0,
             "total": 0
         }
 

@@ -14,7 +14,7 @@ from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from api.models.base import Base, TimestampMixin
+from api.models.base import Base, SoftDeleteMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from api.models.job import AnalysisJob
@@ -45,7 +45,7 @@ class TranscriptionProvider(StrEnum):
     MINIMAX = "minimax"
 
 
-class Transcription(Base, TimestampMixin):
+class Transcription(Base, TimestampMixin, SoftDeleteMixin):
     """
     Model representing a transcription of media content.
 

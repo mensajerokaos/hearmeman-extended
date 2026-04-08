@@ -561,3 +561,42 @@ Track across all sessions:
 **Duration**: ~6 minutes
 
 ---
+
+## 2026-04-08 Session: Self-Hosted Video API Implementation Worktree
+
+**Start**: 2026-04-08 00:26:00 CST (CDMX)
+**Author**: oz + Codex
+
+**Tasks**:
+- [x] Create dedicated implementation worktree for the video API effort
+  - Branch: `feature/self-hosted-video-api`
+  - Worktree: `/home/oz/projects/2025/oz/12/runpod-self-hosted-video-api`
+- [x] Implement Seedance-style async task endpoints for MagiHuman and control-first video generation
+  - Added `/api/v1/video/tasks` and `/api/v1/control-video/tasks` create/list/get/cancel surfaces
+  - Added task schemas and service helpers under `api/schemas/video_task.py` and `api/services/video_task.py`
+- [x] Extend job lifecycle handling for public video task states
+  - Added `staged` and `canceled` to the job status enums
+  - Added migration: `/home/oz/projects/2025/oz/12/runpod-self-hosted-video-api/migrations/versions/2026_04_08_0010_extend_job_status_for_video_tasks.py`
+- [x] Fix branch-local test harness issues blocking validation
+  - Updated API tests to import from the current worktree instead of the original checkout path
+  - Added SQLite JSONB compiler shim in `api/tests/conftest.py`
+  - Restored `SoftDeleteMixin` on models so repository assumptions match model definitions
+- [x] Add focused tests for the new contract and run the smallest viable pytest slice
+  - Added `api/tests/test_video_task_schemas.py`
+  - Added `api/tests/test_video_task_endpoints.py`
+  - Verified with `pytest api/tests/test_video_task_schemas.py api/tests/test_video_task_endpoints.py -q`
+
+**Key Findings**:
+1. The existing `analysis_job` table is sufficient for the first implementation slice when task-specific state is stored in `metadata_json`.
+2. Public task contracts can be added without ComfyUI by treating MagiHuman and Wan 2.2 as separate task families over the same job substrate.
+3. The repo’s test harness had two pre-existing blockers for branch-local API work:
+   - hardcoded imports pointed at the original worktree
+   - SQLite tests could not compile PostgreSQL `JSONB` columns without a local compiler shim
+4. The repository layer also assumed soft-delete fields that were missing from model inheritance, so the API work surfaced a real model/repository contract gap.
+
+**Status**: Completed
+
+**End**: 2026-04-08 00:36:39 CST (CDMX)
+**Duration**: ~11 minutes
+
+---

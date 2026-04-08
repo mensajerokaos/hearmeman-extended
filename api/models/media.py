@@ -14,7 +14,7 @@ from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from api.models.base import Base, TimestampMixin
+from api.models.base import Base, SoftDeleteMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from api.models.job import AnalysisJob
@@ -60,7 +60,7 @@ class MediaFileStatus(StrEnum):
     FAILED = "failed"
 
 
-class MediaFile(Base, TimestampMixin):
+class MediaFile(Base, TimestampMixin, SoftDeleteMixin):
     """
     Model representing a media file associated with an analysis job.
 

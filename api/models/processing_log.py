@@ -14,7 +14,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from api.models.base import Base
+from api.models.base import Base, SoftDeleteMixin
 
 if TYPE_CHECKING:
     from api.models.job import AnalysisJob
@@ -62,7 +62,7 @@ class ProcessingLogStatus(StrEnum):
     SKIPPED = "skipped"
 
 
-class ProcessingLog(Base):
+class ProcessingLog(Base, SoftDeleteMixin):
     """
     Model representing a processing log entry.
 

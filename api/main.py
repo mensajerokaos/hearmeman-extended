@@ -9,7 +9,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +22,7 @@ from api.models.database import (
     verify_database_connection,
 )
 from api.models.base import Base
-from api.models.job import AnalysisJob
+from api.models.job import AnalysisJob, JobStatus as ModelJobStatus
 from api.models.media import MediaFile
 from api.models.result import AnalysisResult
 from api.models.transcription import Transcription
@@ -31,6 +31,29 @@ from api.repositories.job import JobRepository
 from api.repositories.result import ResultRepository
 from api.schemas.job import JobCreate, JobResponse, JobListResponse, JobUpdate
 from api.schemas.result import AnalysisResultCreate, AnalysisResultResponse, AnalysisResultListResponse
+from api.schemas.video_task import (
+    ControlVideoTaskCreate,
+    ControlVideoTaskType,
+    MagiHumanTaskCreate,
+    MagiHumanTaskType,
+    VideoTaskEnvelope,
+    VideoTaskListEnvelope,
+)
+from api.services.video_task import (
+    CONTROL_VIDEO_TASK_FAMILY,
+    VIDEO_TASK_FAMILY,
+    TERMINAL_STATUSES,
+    apply_public_status,
+    build_task_metadata,
+    default_media_type,
+    derive_source_url,
+    filter_task_jobs,
+    get_public_status,
+    is_task_family,
+    paginate_task_jobs,
+    serialize_task,
+    utcnow,
+)
 
 
 # Configure logging
@@ -195,6 +218,21 @@ async def get_job_repository(
 ) -> JobRepository:
     """Dependency to provide JobRepository instance."""
     return JobRepository(session)
+
+
+async def get_task_job_or_404(
+    *,
+    task_id: str,
+    task_family: str,
+    repo: JobRepository,
+) -> AnalysisJob:
+    """Fetch a task-backed AnalysisJob or raise 404."""
+    from uuid import UUID
+
+    job = await repo.get_by_id(UUID(task_id))
+    if not job or not is_task_family(job, task_family):
+        raise HTTPException(status_code=404, detail="Task not found")
+    return job
 
 
 @app.get("/api/v1/jobs", response_model=JobListResponse, tags=["Jobs"])
@@ -448,6 +486,241 @@ async def get_job_statistics(
         Dictionary with counts by status
     """
     return await repo.get_statistics()
+
+
+# =============================================================================
+# Video Task API Endpoints
+# =============================================================================
+
+@app.post(
+    "/api/v1/video/tasks",
+    response_model=VideoTaskEnvelope,
+    status_code=201,
+    tags=["Video Tasks"],
+)
+async def create_video_task(
+    task_data: MagiHumanTaskCreate,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Create an avatar-first MagiHuman task."""
+    input_payload = task_data.input.model_dump(exclude_none=True)
+    metadata = build_task_metadata(task_family=VIDEO_TASK_FAMILY, payload=task_data)
+
+    job = await repo.create(
+        status=ModelJobStatus.STAGED,
+        media_type=default_media_type(),
+        source_url=derive_source_url(input_payload),
+        metadata_json=metadata,
+    )
+    return VideoTaskEnvelope(code=201, data=serialize_task(job))
+
+
+@app.get(
+    "/api/v1/video/tasks",
+    response_model=VideoTaskListEnvelope,
+    tags=["Video Tasks"],
+)
+async def list_video_tasks(
+    *,
+    page: int = 1,
+    page_size: int = 20,
+    status: ModelJobStatus | None = None,
+    task_type: MagiHumanTaskType | None = None,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskListEnvelope:
+    """List avatar-first video tasks."""
+    jobs = await repo.get_all(offset=0, limit=max(page * page_size * 5, 200))
+    filtered = filter_task_jobs(
+        jobs,
+        task_family=VIDEO_TASK_FAMILY,
+        status=status,
+        task_type=task_type.value if task_type else None,
+    )
+    return VideoTaskListEnvelope(
+        code=200,
+        data=paginate_task_jobs(filtered, page=page, page_size=page_size),
+    )
+
+
+@app.get(
+    "/api/v1/video/tasks/{task_id}",
+    response_model=VideoTaskEnvelope,
+    tags=["Video Tasks"],
+)
+async def get_video_task(
+    task_id: str,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Get an avatar-first task by ID."""
+    job = await get_task_job_or_404(
+        task_id=task_id,
+        task_family=VIDEO_TASK_FAMILY,
+        repo=repo,
+    )
+    return VideoTaskEnvelope(code=200, data=serialize_task(job))
+
+
+@app.post(
+    "/api/v1/video/tasks/{task_id}/cancel",
+    response_model=VideoTaskEnvelope,
+    tags=["Video Tasks"],
+)
+async def cancel_video_task(
+    task_id: str,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Cancel an avatar-first task when it is still active."""
+    from uuid import UUID
+
+    job = await get_task_job_or_404(
+        task_id=task_id,
+        task_family=VIDEO_TASK_FAMILY,
+        repo=repo,
+    )
+    public_status = get_public_status(job)
+
+    if public_status in TERMINAL_STATUSES:
+        if public_status == ModelJobStatus.CANCELED:
+            return VideoTaskEnvelope(code=200, data=serialize_task(job))
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot cancel task in status '{public_status.value}'",
+        )
+
+    metadata = apply_public_status(
+        job,
+        status=ModelJobStatus.CANCELED,
+        error_message="Task canceled by user",
+    )
+    updated = await repo.update(
+        UUID(task_id),
+        status=ModelJobStatus.CANCELED,
+        completed_at=utcnow(),
+        error_message="Task canceled by user",
+        metadata_json=metadata,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return VideoTaskEnvelope(code=200, data=serialize_task(updated))
+
+
+# =============================================================================
+# Control-First Video Task API Endpoints
+# =============================================================================
+
+@app.post(
+    "/api/v1/control-video/tasks",
+    response_model=VideoTaskEnvelope,
+    status_code=201,
+    tags=["Control Video Tasks"],
+)
+async def create_control_video_task(
+    task_data: ControlVideoTaskCreate,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Create a control-first Wan-backed task."""
+    input_payload = task_data.input.model_dump(exclude_none=True)
+    metadata = build_task_metadata(
+        task_family=CONTROL_VIDEO_TASK_FAMILY,
+        payload=task_data,
+    )
+
+    job = await repo.create(
+        status=ModelJobStatus.STAGED,
+        media_type=default_media_type(),
+        source_url=derive_source_url(input_payload),
+        metadata_json=metadata,
+    )
+    return VideoTaskEnvelope(code=201, data=serialize_task(job))
+
+
+@app.get(
+    "/api/v1/control-video/tasks",
+    response_model=VideoTaskListEnvelope,
+    tags=["Control Video Tasks"],
+)
+async def list_control_video_tasks(
+    *,
+    page: int = 1,
+    page_size: int = 20,
+    status: ModelJobStatus | None = None,
+    task_type: ControlVideoTaskType | None = None,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskListEnvelope:
+    """List control-first video tasks."""
+    jobs = await repo.get_all(offset=0, limit=max(page * page_size * 5, 200))
+    filtered = filter_task_jobs(
+        jobs,
+        task_family=CONTROL_VIDEO_TASK_FAMILY,
+        status=status,
+        task_type=task_type.value if task_type else None,
+    )
+    return VideoTaskListEnvelope(
+        code=200,
+        data=paginate_task_jobs(filtered, page=page, page_size=page_size),
+    )
+
+
+@app.get(
+    "/api/v1/control-video/tasks/{task_id}",
+    response_model=VideoTaskEnvelope,
+    tags=["Control Video Tasks"],
+)
+async def get_control_video_task(
+    task_id: str,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Get a control-first task by ID."""
+    job = await get_task_job_or_404(
+        task_id=task_id,
+        task_family=CONTROL_VIDEO_TASK_FAMILY,
+        repo=repo,
+    )
+    return VideoTaskEnvelope(code=200, data=serialize_task(job))
+
+
+@app.post(
+    "/api/v1/control-video/tasks/{task_id}/cancel",
+    response_model=VideoTaskEnvelope,
+    tags=["Control Video Tasks"],
+)
+async def cancel_control_video_task(
+    task_id: str,
+    repo: JobRepository = Depends(get_job_repository),
+) -> VideoTaskEnvelope:
+    """Cancel a control-first task when it is still active."""
+    from uuid import UUID
+
+    job = await get_task_job_or_404(
+        task_id=task_id,
+        task_family=CONTROL_VIDEO_TASK_FAMILY,
+        repo=repo,
+    )
+    public_status = get_public_status(job)
+
+    if public_status in TERMINAL_STATUSES:
+        if public_status == ModelJobStatus.CANCELED:
+            return VideoTaskEnvelope(code=200, data=serialize_task(job))
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot cancel task in status '{public_status.value}'",
+        )
+
+    metadata = apply_public_status(
+        job,
+        status=ModelJobStatus.CANCELED,
+        error_message="Task canceled by user",
+    )
+    updated = await repo.update(
+        UUID(task_id),
+        status=ModelJobStatus.CANCELED,
+        completed_at=utcnow(),
+        error_message="Task canceled by user",
+        metadata_json=metadata,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return VideoTaskEnvelope(code=200, data=serialize_task(updated))
 
 
 # =============================================================================

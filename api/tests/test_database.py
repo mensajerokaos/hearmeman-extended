@@ -10,6 +10,7 @@ This module tests:
 """
 
 import sys
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -18,10 +19,11 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-sys.path.insert(0, "/home/oz/projects/2025/oz/12/runpod/api")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from models.base import Base
-from models.database import (
+from api.models.base import Base
+from api.models.database import (
     ASYNC_DATABASE_URL,
     close_engine,
     create_async_engine_configured,
@@ -114,7 +116,7 @@ class TestSessionLifecycle:
     @pytest.mark.asyncio
     async def test_session_can_add_objects(self, test_session):
         """Test that objects can be added to the session."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         job = AnalysisJob(
             status=JobStatus.PENDING,
@@ -131,7 +133,7 @@ class TestSessionLifecycle:
     @pytest.mark.asyncio
     async def test_session_can_refresh_objects(self, test_session):
         """Test that session can refresh objects from database."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         job = AnalysisJob(
             status=JobStatus.PENDING,
@@ -149,7 +151,7 @@ class TestSessionLifecycle:
     @pytest.mark.asyncio
     async def test_session_close(self, test_session):
         """Test that session can be closed properly."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         job = AnalysisJob(
             status=JobStatus.PROCESSING,
@@ -171,7 +173,7 @@ class TestTransactionRollback:
     @pytest.mark.asyncio
     async def test_rollback_discards_changes(self, test_session):
         """Test that rollback discards uncommitted changes."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         # Add a job
         job = AnalysisJob(
@@ -205,7 +207,7 @@ class TestTransactionRollback:
     @pytest.mark.asyncio
     async def test_rollback_on_error(self, test_session):
         """Test that session rolls back on errors."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         job = AnalysisJob(
             status=JobStatus.PENDING,
@@ -241,7 +243,7 @@ class TestTransactionRollback:
     @pytest.mark.asyncio
     async def test_nested_transaction_rollback(self, test_session):
         """Test rollback behavior with nested transactions."""
-        from models.job import AnalysisJob, JobStatus, MediaType
+        from api.models.job import AnalysisJob, JobStatus, MediaType
 
         # Create first job (committed)
         job1 = AnalysisJob(
@@ -387,7 +389,7 @@ class TestInMemoryDatabase:
         )
 
         async with session_factory() as session:
-            from models.job import AnalysisJob, JobStatus, MediaType
+            from api.models.job import AnalysisJob, JobStatus, MediaType
 
             job = AnalysisJob(
                 status=JobStatus.COMPLETED,

@@ -10,6 +10,7 @@ This module tests:
 """
 
 import sys
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -17,13 +18,14 @@ import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-sys.path.insert(0, "/home/oz/projects/2025/oz/12/runpod/api")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from models.base import TimestampMixin
-from models.job import AnalysisJob, JobStatus, MediaType
-from models.media import FileType, MediaFile, MediaFileStatus
-from models.result import AnalysisProvider, AnalysisResult
-from models.transcription import Transcription, TranscriptionProvider
+from api.models.base import TimestampMixin
+from api.models.job import AnalysisJob, JobStatus, MediaType
+from api.models.media import FileType, MediaFile, MediaFileStatus
+from api.models.result import AnalysisProvider, AnalysisResult
+from api.models.transcription import Transcription, TranscriptionProvider
 
 
 class TestAnalysisJobModel:

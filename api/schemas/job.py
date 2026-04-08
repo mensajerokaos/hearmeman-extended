@@ -19,15 +19,19 @@ class JobStatus(StrEnum):
 
     States:
         - pending: Job created, awaiting processing
+        - staged: Job accepted and queued for processing
         - processing: Job is currently being processed
         - completed: Job finished successfully
         - failed: Job encountered an error
+        - canceled: Job was canceled before completion
     """
 
     PENDING = "pending"
+    STAGED = "staged"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELED = "canceled"
 
 
 class MediaType(StrEnum):
