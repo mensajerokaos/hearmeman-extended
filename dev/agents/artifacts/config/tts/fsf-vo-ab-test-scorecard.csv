@@ -1,0 +1,4 @@
+engine,voice_mode,line_id,text,output_path,gpu,seed,runtime_seconds,natural_spanish_1_5,warmth_1_5,emotional_restraint_1_5,pronunciation_1_5,artifact_noise_1_5,editability_1_5,brand_fit_1_5,notes
+qwen3-tts,voice-design,,,,,,,,,,,,,,
+qwen3-tts,custom-voice,,,,,,,,,,,,,,
+fish-s2,tagged,,,,,,,,,,,,,,
